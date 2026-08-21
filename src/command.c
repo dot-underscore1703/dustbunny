@@ -12,24 +12,24 @@
 
 char **tokenise(char *line) {
     size_t bufsize = 16, position = 0;
-    char **tokens = malloc(bufsize * sizeof(char));
+    char **tokens = malloc(bufsize * sizeof(char *));
 
     char *token;
 
     chk_alloc(tokens);
 
-    token = strtok(line, "\t\r\n\a");
+    token = strtok(line, "\t\r\n\a ");
     while(token != NULL) {
         tokens[position] = token;
         ++position;
 
         if(position >= bufsize) {
-            void *tmp_ptr = *tokens;
+            void *tmp_ptr = tokens;
             double_buffer_size(&tmp_ptr, &bufsize);
-            *tokens = tmp_ptr;
+            tokens = tmp_ptr;
         }
 
-        token = strtok(NULL, "\t\r\n\a");
+        token = strtok(NULL, "\t\r\n\a ");
     }
     tokens[position] = NULL;
 
@@ -83,6 +83,7 @@ int execute(char **argv) {
 
     pid = fork();
     if(pid == 0) {
+        //printf("argv[0] = [%s]\n", argv[0]);
         if(execvp(argv[0],argv) == -1) {
             perror("dustbunny");
         }

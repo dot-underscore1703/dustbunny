@@ -1,1 +1,0 @@
-/usr/bin/cc -Wl,--dependency-file=CMakeFiles/dustbunny.dir/link.d CMakeFiles/dustbunny.dir/src/command.c.o CMakeFiles/dustbunny.dir/src/input.c.o CMakeFiles/dustbunny.dir/src/main.c.o CMakeFiles/dustbunny.dir/src/memory.c.o -o dustbunny

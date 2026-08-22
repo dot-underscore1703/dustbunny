@@ -3,5 +3,6 @@
 
 char **tokenise(char *line);
 int execute(char **argv);
+int get_argc(char **argv);
 
 #endif

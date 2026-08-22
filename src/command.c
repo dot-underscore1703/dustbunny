@@ -6,9 +6,42 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include "headers/memory.h"
-#include "headers/version.h"
+#include "headers/builtins.h"
 
 #define CMD_IS(x) (strcmp(argv[0],x) == 0)
+#define WHY(x) if(is_why == 1){ printf("dustbunny: %s\n",x); }
+
+int get_argc(char **argv){
+    if(argv == NULL){ 
+        return 0; 
+    }
+    int i = 0;
+    while(argv[i] != NULL) ++i;
+
+    return i;
+}
+
+void expand_args(char **argv) {
+    for(int i = 0; i < get_argc(argv); ++i) {
+        switch(argv[i][0]) {
+            case '~': {
+                char *home_directory = getenv("HOME");
+                if(home_directory == NULL) {
+                    printf("dustbunny: could not get home directory\n");
+                    return;
+                }
+                char *tmp_arg = malloc(
+                    strlen(home_directory) + strlen(argv[i])
+                );
+
+                snprintf(tmp_arg, strlen(home_directory) + strlen(argv[i]),
+                    "%s%s", home_directory, argv[i] + 1);
+
+                argv[i] = tmp_arg;
+            }
+        }
+    }
+}
 
 char **tokenise(char *line) {
     size_t bufsize = 16, position = 0;
@@ -33,71 +66,21 @@ char **tokenise(char *line) {
     }
     tokens[position] = NULL;
 
+    expand_args(tokens);
+
     return tokens;
 }
 
-int get_argc(char **argv){
-    if(argv == NULL){ 
-        return 0; 
-    }
-    int i = 0;
-    while(argv[i] != NULL) ++i;
-
-    return i;
-}
-
-void expand_args(char **argv) {
-    for(int i = 0; i < get_argc(argv); ++i) {
-        switch(argv[i][0]) {
-            case '~': {
-                
-            }
-        }
-    }
-}
-
-int execute(char **argv) {
-    struct stat path_stat;
+int launch(char **argv, int is_why) {
     pid_t pid, wpid;
 
     int status;
 
-    if(argv[0] == NULL) {
-        return 1;
-    }
-
-    if (stat(argv[0], &path_stat) == 0 && S_ISDIR(path_stat.st_mode)) {
-        if (argv[1] != NULL) {
-            printf("dustbunny: Too many arguments\n");
-        } else {
-            if (chdir(argv[0]) != 0) {
-                perror("dustbunny: chdir");
-            }
-        }
-        return 0; 
-
-    }else if(CMD_IS("cd")){
-        printf("dustbunny: cd does not exist. run 'help' for more info.");
-        return 0;
-    }else if(CMD_IS("help")){
-        printf(
-            "DUSTBUNNY %i.%i.%i\n\tCopyright (c) %i %s, %s\n\nBuilt-in commands:\n\thelp\n\texit\n\t<path to directory>\n\nRather than a standard 'cd <path>', dustbunny simply uses <path>.\n\nView the repo at %s.\n",
-            DUSTBUNNY_VERSION_MAJOR,
-            DUSTBUNNY_VERSION_MINOR,
-            DUSTBUNNY_VERSION_PATCH,
-            DUSTBUNNY_RELEASE_YEAR,
-            DUSTBUNNY_AUTHOR,
-            DUSTBUNNY_LICENSE,
-            DUSTBUNNY_REPO
-        );
-        return 0;
-    }else if(CMD_IS("exit")) {
-        return -1;
-    }
-
+    WHY("forking process");
     pid = fork();
+    WHY("process forked")
     if(pid == 0) {
-        //printf("argv[0] = [%s]\n", argv[0]);
+        WHY("executing command");
         if(execvp(argv[0],argv) == -1) {
             perror("dustbunny");
         }
@@ -105,10 +88,39 @@ int execute(char **argv) {
     } else if(pid < 0) {
         perror("dustbunny");
     } else {
+        WHY("waiting pid")
         do {
             wpid = waitpid(pid, &status, WUNTRACED);
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
     }
+    WHY("done")
+    return 0;
+}
+
+int execute(char **argv) {
+    struct stat path_stat;
+
+    if(argv[0] == NULL) {
+        return 1;
+    }
+
+    if (stat(argv[0], &path_stat) == 0 && S_ISDIR(path_stat.st_mode)) {
+        cd(argv);
+        return 0; 
+    }else if(CMD_IS("cd")){
+        cd(argv);
+        return 0;
+    }else if(CMD_IS("help")){
+        help(argv);
+        return 0;
+    }else if(CMD_IS("why")) {
+        launch(argv + 1, 1);
+        return 0;
+    }else if(CMD_IS("exit") || CMD_IS("quit")) {
+        return -1;
+    }
+
+    launch(argv, 0);
 
     return 0;
 }

@@ -1,0 +1,5 @@
+# Dustbunny changelog
+## 0.2.0
+- Added 'why' built-in shell command.
+- Switched to libreadinput library, history and cursor control now exist properly.
+- Added support for expanding the '~' character to the users home directory.

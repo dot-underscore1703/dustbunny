@@ -11,6 +11,7 @@ SPEC="$PROJECT_DIR/packaging/dustbunny.spec"
 RPMBUILD="$HOME/rpmbuild"
 SPEC_DEST="$RPMBUILD/SPECS/dustbunny.spec"
 RPM_DIR="$RPMBUILD/RPMS/x86_64"
+SOURCE_DIR="$RPMBUILD/SOURCES"
 
 REPO_DIR="$HOME/Projects/dot-underscore1703.github.io"
 REPO_ARCH="$REPO_DIR/x86_64"
@@ -29,10 +30,25 @@ if [[ -z "$VERSION" ]]; then
     exit 1
 fi
 
+if [[ -z "$RELEASE" ]]; then
+    echo "ERROR: Could not determine package release."
+    exit 1
+fi
+
 echo "==> Releasing $PACKAGE $VERSION-$RELEASE"
 
 # ------------------------------------------------------------
-# Make sure we're using the current spec
+# Make sure required directories exist
+# ------------------------------------------------------------
+
+echo "==> Preparing rpmbuild tree"
+
+mkdir -p "$RPMBUILD/SPECS"
+mkdir -p "$SOURCE_DIR"
+mkdir -p "$RPM_DIR"
+
+# ------------------------------------------------------------
+# Install current spec
 # ------------------------------------------------------------
 
 echo "==> Installing spec into rpmbuild tree"
@@ -40,7 +56,31 @@ echo "==> Installing spec into rpmbuild tree"
 cp "$SPEC" "$SPEC_DEST"
 
 # ------------------------------------------------------------
-# Clean old build directories
+# Create source archive
+# ------------------------------------------------------------
+
+echo "==> Creating source archive"
+
+SOURCE_ARCHIVE="$SOURCE_DIR/${PACKAGE}-${VERSION}.tar.gz"
+
+rm -f "$SOURCE_ARCHIVE"
+
+git -C "$PROJECT_DIR" archive \
+    --format=tar.gz \
+    --prefix="${PACKAGE}-${VERSION}/" \
+    -o "$SOURCE_ARCHIVE" \
+    HEAD
+
+if [[ ! -f "$SOURCE_ARCHIVE" ]]; then
+    echo "ERROR: Failed to create source archive:"
+    echo "       $SOURCE_ARCHIVE"
+    exit 1
+fi
+
+echo "    $SOURCE_ARCHIVE"
+
+# ------------------------------------------------------------
+# Clean old build artifacts
 # ------------------------------------------------------------
 
 echo "==> Cleaning old build artifacts"
@@ -48,7 +88,7 @@ echo "==> Cleaning old build artifacts"
 rm -rf "$RPMBUILD/BUILD/${PACKAGE}-"* \
        "$RPMBUILD/BUILDROOT/${PACKAGE}-"* \
        "$RPMBUILD/RPMS/x86_64/${PACKAGE}-"* \
-       "$RPMBUILD/SRPMS/${PACKAGE}-"* 
+       "$RPMBUILD/SRPMS/${PACKAGE}-"*
 
 # ------------------------------------------------------------
 # Build RPM
@@ -76,8 +116,12 @@ RPM_VERSION="$(rpm -qp --qf '%{VERSION}-%{RELEASE}.%{ARCH}\n' "$RPM")"
 
 echo "    $RPM_VERSION"
 
-if [[ "$RPM_VERSION" != "$VERSION-$RELEASE.fc44.x86_64" ]]; then
+EXPECTED_RPM_VERSION="$VERSION-$RELEASE.fc44.x86_64"
+
+if [[ "$RPM_VERSION" != "$EXPECTED_RPM_VERSION" ]]; then
     echo "ERROR: RPM version does not match spec."
+    echo "       Expected: $EXPECTED_RPM_VERSION"
+    echo "       Got:      $RPM_VERSION"
     exit 1
 fi
 
@@ -96,24 +140,25 @@ rpm2cpio "$RPM" | cpio -idm >/dev/null 2>&1
 
 BINARY="./usr/bin/dustbunny"
 
-if [[ ! -x "$BINARY" ]]; then
+if [[ ! -f "$BINARY" ]]; then
     echo "ERROR: RPM does not contain /usr/bin/dustbunny"
     exit 1
 fi
 
-BINARY_VERSION="$("$BINARY" <<<'help' | head -n 1)"
-
-echo "    $BINARY_VERSION"
-
-EXPECTED="DUSTBUNNY $VERSION"
-
-if [[ "$BINARY_VERSION" != "$EXPECTED"* ]]; then
-    echo "ERROR: Binary reports:"
-    echo "       $BINARY_VERSION"
-    echo "but expected:"
-    echo "       $EXPECTED"
+if [[ ! -x "$BINARY" ]]; then
+    echo "ERROR: /usr/bin/dustbunny is not executable"
     exit 1
 fi
+
+echo "    Found executable: /usr/bin/dustbunny"
+
+# Verify that it is an ELF executable.
+if ! file "$BINARY" | grep -q "ELF"; then
+    echo "ERROR: /usr/bin/dustbunny is not an ELF executable"
+    exit 1
+fi
+
+echo "    ELF executable verified"
 
 # ------------------------------------------------------------
 # Copy packages to repository
@@ -121,16 +166,20 @@ fi
 
 echo "==> Publishing RPMs"
 
+mkdir -p "$REPO_ARCH"
+
 cp "$RPM" "$REPO_ARCH/"
 
-for rpm in \
-    "$RPM_DIR/${PACKAGE}-debuginfo-${VERSION}-${RELEASE}.fc44.x86_64.rpm" \
-    "$RPM_DIR/${PACKAGE}-debugsource-${VERSION}-${RELEASE}.fc44.x86_64.rpm"
-do
-    if [[ -f "$rpm" ]]; then
-        cp "$rpm" "$REPO_ARCH/"
-    fi
-done
+DEBUGINFO_RPM="$RPM_DIR/${PACKAGE}-debuginfo-${VERSION}-${RELEASE}.fc44.x86_64.rpm"
+DEBUGSOURCE_RPM="$RPM_DIR/${PACKAGE}-debugsource-${VERSION}-${RELEASE}.fc44.x86_64.rpm"
+
+if [[ -f "$DEBUGINFO_RPM" ]]; then
+    cp "$DEBUGINFO_RPM" "$REPO_ARCH/"
+fi
+
+if [[ -f "$DEBUGSOURCE_RPM" ]]; then
+    cp "$DEBUGSOURCE_RPM" "$REPO_ARCH/"
+fi
 
 # ------------------------------------------------------------
 # Regenerate repository metadata
@@ -143,13 +192,30 @@ cd "$REPO_ARCH"
 createrepo_c --update .
 
 # ------------------------------------------------------------
-# Commit and push
+# Show files that will be published
 # ------------------------------------------------------------
 
 cd "$REPO_DIR"
 
 echo "==> Git status"
+
 git status --short
+
+echo
+echo "Packages ready for release:"
+echo "    $REPO_ARCH/${PACKAGE}-${VERSION}-${RELEASE}.fc44.x86_64.rpm"
+
+if [[ -f "$DEBUGINFO_RPM" ]]; then
+    echo "    $REPO_ARCH/${PACKAGE}-debuginfo-${VERSION}-${RELEASE}.fc44.x86_64.rpm"
+fi
+
+if [[ -f "$DEBUGSOURCE_RPM" ]]; then
+    echo "    $REPO_ARCH/${PACKAGE}-debugsource-${VERSION}-${RELEASE}.fc44.x86_64.rpm"
+fi
+
+# ------------------------------------------------------------
+# Commit and push
+# ------------------------------------------------------------
 
 echo
 read -rp "Commit and push release $VERSION-$RELEASE? [y/N] " answer

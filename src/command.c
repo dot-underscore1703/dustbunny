@@ -46,6 +46,16 @@ int get_argc(char **argv){
     return i;
 }
 
+void expand_args(char **argv) {
+    for(int i = 0; i < get_argc(argv); ++i) {
+        switch(argv[i][0]) {
+            case '~': {
+                
+            }
+        }
+    }
+}
+
 int execute(char **argv) {
     struct stat path_stat;
     pid_t pid, wpid;
@@ -65,6 +75,10 @@ int execute(char **argv) {
             }
         }
         return 0; 
+
+    }else if(CMD_IS("cd")){
+        printf("dustbunny: cd does not exist. run 'help' for more info.");
+        return 0;
     }else if(CMD_IS("help")){
         printf(
             "DUSTBUNNY %i.%i.%i\n\tCopyright (c) %i %s, %s\n\nBuilt-in commands:\n\thelp\n\texit\n\t<path to directory>\n\nRather than a standard 'cd <path>', dustbunny simply uses <path>.\n\nView the repo at %s.\n",

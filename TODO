@@ -2,3 +2,4 @@ Handle Ctrl+C so Dustbunny will not exit when no child process is running.
 Implement cursor control so pressing left and right arrows move the cursor.
 Implement history so pressing up and down arrows move through older commands.
 Quoted arguments.
+Config file.

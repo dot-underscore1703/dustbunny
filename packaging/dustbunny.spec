@@ -1,5 +1,5 @@
 Name:           dustbunny
-Version:        0.1.0
+Version:        0.1.1
 Release:        1%{?dist}
 Summary:        Custom Linux shell
 
@@ -17,6 +17,7 @@ Dustbunny is a hobby shell targeted at Linux systems. It serves as an exercise f
 %prep
 %autosetup
 
+
 %build
 %cmake
 %cmake_build
@@ -29,5 +30,5 @@ Dustbunny is a hobby shell targeted at Linux systems. It serves as an exercise f
 %{_bindir}/dustbunny
 
 %changelog
-* Fri Aug 21 2026 Rory Lane <roryl12@outlook.com> - 0.1.0-1
+* Fri Aug 21 2026 Rory Lane <roryl12@outlook.com> - 0.1.1-1
 - Initial RPM package

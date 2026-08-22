@@ -1,0 +1,16 @@
+Dustbunny is an educational project that I am using to learn C.
+The use of AI agents/LLMs to do all the coding for me, will not help me learn C.
+For that reason I want to make it clear to myself, and to everyone where AI is used in this project.
+
+AI will only be used in large places of repetitive code that would be otherwise tedious and time-wasting to write by hand.
+For example, a long switch statement.
+
+If I find an alternative solution where I would not have to write such repetive code, I will use it, and no AI will be involved.
+
+AI will also be used to generate place-holder scripts, like the release.sh script in this repo.
+
+AI was used to explain how to create the contents of packaging/ and repo/, but the contents themselves were created either by hand or using a tool that manages it automatically.
+
+If I encounter a problem in the code that I can not solve myself, I will always lean towards asking real humans rather than an AI.
+
+Anything that has been generated is strictly reviewed and modified to be as suitable as it can be.

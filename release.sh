@@ -18,10 +18,6 @@ REPO_ARCH="$REPO_DIR/x86_64"
 
 PACKAGE="dustbunny"
 
-# ------------------------------------------------------------
-# Read version from spec
-# ------------------------------------------------------------
-
 VERSION="$(awk '$1 == "Version:" {print $2; exit}' "$SPEC")"
 RELEASE="$(awk '$1 == "Release:" {print $2; exit}' "$SPEC" | sed 's/%{?dist}//')"
 
@@ -37,27 +33,14 @@ fi
 
 echo "==> Releasing $PACKAGE $VERSION-$RELEASE"
 
-# ------------------------------------------------------------
-# Make sure required directories exist
-# ------------------------------------------------------------
-
 echo "==> Preparing rpmbuild tree"
 
 mkdir -p "$RPMBUILD/SPECS"
 mkdir -p "$SOURCE_DIR"
 mkdir -p "$RPM_DIR"
-
-# ------------------------------------------------------------
-# Install current spec
-# ------------------------------------------------------------
-
 echo "==> Installing spec into rpmbuild tree"
 
 cp "$SPEC" "$SPEC_DEST"
-
-# ------------------------------------------------------------
-# Create source archive
-# ------------------------------------------------------------
 
 echo "==> Creating source archive"
 
@@ -79,20 +62,12 @@ fi
 
 echo "    $SOURCE_ARCHIVE"
 
-# ------------------------------------------------------------
-# Clean old build artifacts
-# ------------------------------------------------------------
-
 echo "==> Cleaning old build artifacts"
 
 rm -rf "$RPMBUILD/BUILD/${PACKAGE}-"* \
        "$RPMBUILD/BUILDROOT/${PACKAGE}-"* \
        "$RPMBUILD/RPMS/x86_64/${PACKAGE}-"* \
        "$RPMBUILD/SRPMS/${PACKAGE}-"*
-
-# ------------------------------------------------------------
-# Build RPM
-# ------------------------------------------------------------
 
 echo "==> Building RPM"
 
@@ -106,9 +81,6 @@ if [[ ! -f "$RPM" ]]; then
     exit 1
 fi
 
-# ------------------------------------------------------------
-# Verify RPM metadata
-# ------------------------------------------------------------
 
 echo "==> Verifying RPM"
 
@@ -124,11 +96,6 @@ if [[ "$RPM_VERSION" != "$EXPECTED_RPM_VERSION" ]]; then
     echo "       Got:      $RPM_VERSION"
     exit 1
 fi
-
-# ------------------------------------------------------------
-# Verify binary inside RPM
-# ------------------------------------------------------------
-
 echo "==> Verifying binary"
 
 TMP_DIR="$(mktemp -d)"
@@ -160,10 +127,6 @@ fi
 
 echo "    ELF executable verified"
 
-# ------------------------------------------------------------
-# Copy packages to repository
-# ------------------------------------------------------------
-
 echo "==> Publishing RPMs"
 
 mkdir -p "$REPO_ARCH"
@@ -181,19 +144,12 @@ if [[ -f "$DEBUGSOURCE_RPM" ]]; then
     cp "$DEBUGSOURCE_RPM" "$REPO_ARCH/"
 fi
 
-# ------------------------------------------------------------
-# Regenerate repository metadata
-# ------------------------------------------------------------
 
 echo "==> Regenerating repository metadata"
 
 cd "$REPO_ARCH"
 
 createrepo_c --update .
-
-# ------------------------------------------------------------
-# Show files that will be published
-# ------------------------------------------------------------
 
 cd "$REPO_DIR"
 
@@ -213,9 +169,6 @@ if [[ -f "$DEBUGSOURCE_RPM" ]]; then
     echo "    $REPO_ARCH/${PACKAGE}-debugsource-${VERSION}-${RELEASE}.fc44.x86_64.rpm"
 fi
 
-# ------------------------------------------------------------
-# Commit and push
-# ------------------------------------------------------------
 
 echo
 read -rp "Commit and push release $VERSION-$RELEASE? [y/N] " answer

@@ -5,11 +5,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include "headers/memory.h"
 #include "headers/builtins.h"
 
 #define CMD_IS(x) (strcmp(argv[0],x) == 0)
-#define WHY(x) if(is_why == 1){ printf("dustbunny: %s\n",x); }
 
 int get_argc(char **argv){
     if(argv == NULL){ 
@@ -30,57 +28,89 @@ void expand_args(char **argv) {
                     printf("dustbunny: could not get home directory\n");
                     return;
                 }
-                char *tmp_arg = malloc(
-                    strlen(home_directory) + strlen(argv[i])
-                );
+                size_t new_len = strlen(home_directory) + strlen(argv[i] + 1) + 1;
 
-                snprintf(tmp_arg, strlen(home_directory) + strlen(argv[i]),
-                    "%s%s", home_directory, argv[i] + 1);
+                char *expanded_path = malloc(new_len);
 
-                argv[i] = tmp_arg;
+                strcpy(expanded_path, home_directory);
+                strcat(expanded_path, argv[i] + 1);
+                expanded_path[new_len] = '\0';
+
+                argv[i] = expanded_path;
             }
         }
     }
 }
 
 char **tokenise(char *line) {
-    size_t bufsize = 16, position = 0;
-    char **tokens = malloc(bufsize * sizeof(char *));
+    size_t max_tokens = 16;
+    size_t max_token_len = 128;
 
-    char *token;
+    char **tokens = malloc(max_tokens * sizeof(char *));
+    size_t num_tokens = 0;
 
-    chk_alloc(tokens);
+    char *token = malloc(max_token_len * sizeof(char));
+    size_t token_len = 0;
 
-    token = strtok(line, "\t\r\n\a ");
-    while(token != NULL) {
-        tokens[position] = token;
-        ++position;
+    size_t input_len = strlen(line);
 
-        if(position >= bufsize) {
-            void *tmp_ptr = tokens;
-            double_buffer_size(&tmp_ptr, &bufsize);
-            tokens = tmp_ptr;
+    int in_quote = 0;
+
+    for(size_t i = 0; i < input_len; ++i) {
+        switch(line[i]) {
+            case '\\': {
+                token[token_len] = line[++i];
+                ++token_len;
+                break;
+            }
+
+            case '\'': {
+                if(in_quote == 1){
+                    in_quote = 0;
+                } else {
+                    in_quote = 1;
+                }
+                break;
+            }
+
+            case ' ': {
+                if(in_quote == 1){
+                    token[token_len] = line[i];
+                    ++token_len;
+                } else if(line[i - 1] != ' '){
+                    token[token_len] = '\0';
+                    tokens[num_tokens] = token;
+                    token = malloc(max_token_len * sizeof(char));
+                    ++num_tokens;
+                    token_len = 0;
+                }
+                break;
+            }
+            default: {
+                token[token_len] = line[i];
+                ++token_len;
+                break;
+            }
         }
-
-        token = strtok(NULL, "\t\r\n\a ");
     }
-    tokens[position] = NULL;
+    
+    tokens[num_tokens] = token;
+    ++num_tokens;
+
+    tokens[num_tokens] = NULL;
 
     expand_args(tokens);
 
     return tokens;
 }
 
-int launch(char **argv, int is_why) {
+int launch(char **argv) {
     pid_t pid, wpid;
 
     int status;
 
-    WHY("forking process");
     pid = fork();
-    WHY("process forked")
     if(pid == 0) {
-        WHY("executing command");
         if(execvp(argv[0],argv) == -1) {
             perror("dustbunny");
         }
@@ -88,12 +118,10 @@ int launch(char **argv, int is_why) {
     } else if(pid < 0) {
         perror("dustbunny");
     } else {
-        WHY("waiting pid")
         do {
             wpid = waitpid(pid, &status, WUNTRACED);
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
     }
-    WHY("done")
     return 0;
 }
 
@@ -113,14 +141,11 @@ int execute(char **argv) {
     }else if(CMD_IS("help")){
         help(argv);
         return 0;
-    }else if(CMD_IS("why")) {
-        launch(argv + 1, 1);
-        return 0;
     }else if(CMD_IS("exit") || CMD_IS("quit")) {
         return -1;
     }
 
-    launch(argv, 0);
+    launch(argv);
 
     return 0;
 }

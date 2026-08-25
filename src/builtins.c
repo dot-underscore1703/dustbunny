@@ -6,14 +6,22 @@
 
 void help(char **argv) {
     printf(
-        "DUSTBUNNY %i.%i.%i\n\t"
+        "_____█________________█___█_____________________________\n" 
+        "_____█________________█___█_____________________________\n"
+        "__████__█__█___███__████__████___█__█__███___███___█__█_\n" 
+        "_█___█__█__█__██______█___█___█__█__█__█__█__█__█__█__█_\n" 
+        "_█___█__█__█____█_____█___█___█__█__█__█__█__█__█__█__█_\n" 
+        "__████__███___████____█___████___███___█__█__█__█___███_\n" 
+        "______________________________________________________█_\n" 
+        "___________________________________________________█__█_\n" 
+        "____________________________________________________███_\n\n" 
+        "DUSTBUNNY %i.%i.%i\n"
         "Copyright (c) %i %s, %s\n\n"
         "Built-in commands:\n\t"
         "help                   - print help and information about dustbunny\n\t"
         "exit/quit              - exit dustbunny\n\t"
-        "why <command>          - print debug info on how the shell worked\n\t"
-        "<path to directory>    - change current directory (like cd)\n\n"
-        "Rather than a standard 'cd <path>', dustbunny simply uses <path>.\n\n"
+        "<path to directory>    - change current directory (like cd)\n\t"
+        "cd <path to directory> - change current directory (this is cd)\n\n"
         "View the repo at %s.\n",
         DUSTBUNNY_VERSION_MAJOR,
         DUSTBUNNY_VERSION_MINOR,
@@ -33,9 +41,10 @@ void cd(char **argv) {
             if (chdir(argv[1]) != 0) {
                 perror("dustbunny: chdir");
             }else{
-                printf("dustbunny: change working dir to '%s'\n",argv[0]);
+                printf("dustbunny: new working dir: '%s'\n",argv[1]);
             }
         }
+        return;
     }
     if (get_argc(argv) > 1) {
         printf("dustbunny: Too many arguments\n");
@@ -43,7 +52,7 @@ void cd(char **argv) {
         if (chdir(argv[0]) != 0) {
             perror("dustbunny: chdir");
         }else{
-            printf("dustbunny: change working dir to '%s'\n",argv[0]);
+            printf("dustbunny: new working dir: '%s'\n",argv[0]);
         }
     }
 }

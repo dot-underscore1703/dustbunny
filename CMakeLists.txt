@@ -6,13 +6,11 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 add_executable(dustbunny
-    src/headers/memory.h
     src/headers/command.h
     src/headers/version.h
     src/headers/builtins.h
     src/command.c
     src/main.c
-    src/memory.c
     src/builtins.c
 )
 

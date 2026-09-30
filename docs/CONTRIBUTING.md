@@ -27,4 +27,8 @@ cmake -B build
 cmake --build build
 ```
 
+## Contribution Guidelines
+- Your commit message must follow Conventional Commits.
+- Dustbunny operates on Semantic Versioning, so keep that in mind.
+
 *as of version 0.4.0, may change in future, if this file has not been updated please verify this info.

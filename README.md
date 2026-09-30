@@ -13,3 +13,6 @@ ____________________________________________________███_
 Dustbunny is a hobby shell targetted at Linux systems. It serves as an exercise for me learning the C Programming Language, and disciplining me as a programmer in general.
 
 Dustbunny is not intended to be 100% POSIX compliant.
+
+### Interested in Contributing?
+Check out docs/CONTRIBUTING.md in this repo.

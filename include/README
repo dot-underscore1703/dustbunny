@@ -1,0 +1,3 @@
+--- Dustbunny include header files ---
+Anything in the include/libdustbunny/ directory comes from the libdustbunny repository. See it at https://github.com/dot-underscore1703/libdustbunny/
+Anything loose in the include/ directory are dustbunny headers.

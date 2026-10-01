@@ -6,7 +6,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "libdustbunny/debug.h"
+#include "debug.h"
 
 #define MAX_CHILDREN 128 // Will decrease when reallocation is implemented for nodes
 

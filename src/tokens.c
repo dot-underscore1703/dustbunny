@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "libdustbunny/debug.h"
+#include "debug.h"
 
 typedef enum { 
 	TokenText, 

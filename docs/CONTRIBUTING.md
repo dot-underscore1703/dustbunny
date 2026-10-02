@@ -21,5 +21,6 @@ cmake --build build
 - Your commit message must follow Conventional Commits.
 - Dustbunny operates on Semantic Versioning, so keep that in mind.
 - Pull requests are not to go onto the master branch. Please submit pull requests to the dev branch instead.
+- AI usage, in code or documentation, is disallowed in any way or form in regards to public contributions.
 
 *as of version 0.4.0, may change in future, if this file has not been updated please verify this info.

@@ -9,7 +9,8 @@
 
 typedef enum { 
 	TokenText, 
-	TokenNewline, 
+	TokenNewline,
+	TokenSemicolon, 
 	TokenPipe,
 	TokenBracketIn,
 	TokenBracketOut,
@@ -73,6 +74,7 @@ char* token_type_as_str(char *buffer, size_t buffer_len, Token *token){
 		switch(token->type){
 			case TokenText: strcpy(buffer, "TokenText"); break;
 			case TokenNewline: strcpy(buffer, "TokenNewline"); break;
+			case TokenSemicolon: strcpy(buffer, "TokenSemicolon"); break;
 			case TokenPipe: strcpy(buffer, "TokenPipe"); break;
 			case TokenBracketIn: strcpy(buffer, "TokenBracketIn"); break;
 			case TokenBracketOut: strcpy(buffer, "TokenBracketOut"); break;

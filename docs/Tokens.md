@@ -48,11 +48,11 @@ The buffer parameter is the buffer you wish to store the string in.
 The buffer_len parameter is the size of the buffer.
 The token parameter is a pointer you wish to get the stringified type of.
 
-token_type_as_str can return a string up to 15 bytes in length (including terminator). For this reason, it will check that buffer_len > 15 regardless of what it will actually use.
-For this reason, you should make sure that the buffer you give it atleast 15 bytes in length.
+token_type_as_str can return a string up to 19 bytes in length (including terminator). For this reason, it will check that buffer_len > 15 regardless of what it will actually use.
+For this reason, you should make sure that the buffer you give it atleast 19 bytes in length.
 
 Returns a char* string on success, NULL on failure.
-Fails if buffer_len is less than 15.
+Fails if buffer_len is less than 19.
 
 ## Token Types
 - TokenText

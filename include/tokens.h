@@ -8,10 +8,12 @@ typedef enum {
 	TokenTerminator,
 	TokenSemicolon, 
 	TokenPipe,
+	TokenDblPipe,
 	TokenBracketIn,
 	TokenBracketOut,
 	TokenEquals,
 	TokenAmpersand,
+	TokenDblAmpersand,
 	TokenUnknown
 } TokenType;
 

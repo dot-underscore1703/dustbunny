@@ -12,10 +12,12 @@ typedef enum {
 	TokenNewline,
 	TokenSemicolon, 
 	TokenPipe,
+	TokenDblPipe,
 	TokenBracketIn,
 	TokenBracketOut,
 	TokenEquals,
 	TokenAmpersand,
+	TokenDblAmpersand,
 	TokenUnknown
 } TokenType;
 

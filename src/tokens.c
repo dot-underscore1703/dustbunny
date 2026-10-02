@@ -68,7 +68,7 @@ char* token_type_as_str(char *buffer, size_t buffer_len, Token *token){
 		// so we use the two params buffer and buffer_len
 
 		// Since the caller may not know what type the Token is, we will just check to make sure that the buffer is sufficient for the largest type string they could possibly get
-		if(buffer_len < 15) {
+		if(buffer_len < 19) {
 			dustbunny_debug("buffer size not large enough to hold string");
 			return NULL;
 		}
@@ -78,10 +78,12 @@ char* token_type_as_str(char *buffer, size_t buffer_len, Token *token){
 			case TokenNewline: strcpy(buffer, "TokenNewline"); break;
 			case TokenSemicolon: strcpy(buffer, "TokenSemicolon"); break;
 			case TokenPipe: strcpy(buffer, "TokenPipe"); break;
+			case TokenDblPipe: strcpy(buffer, "TokenDblPipe"); break;
 			case TokenBracketIn: strcpy(buffer, "TokenBracketIn"); break;
 			case TokenBracketOut: strcpy(buffer, "TokenBracketOut"); break;
 			case TokenEquals: strcpy(buffer, "TokenEquals"); break;
 			case TokenAmpersand: strcpy(buffer, "TokenAmpersand"); break;
+			case TokenDblAmpersand: strcpy(buffer, "TokenDblAmpersand"); break;
 			default: strcpy(buffer,"TokenUnknown"); break;
 		}
 

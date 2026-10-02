@@ -76,3 +76,5 @@ Fails if buffer_len is less than 19.
 	Appears on ampersand ('&', 0x26). Used to push a process to the background.
 - TokenDblAmpersand
 	Appears on two subsequent ampersands ('&&',0x26 0x26). Used for conditional execution.
+- TokenUnknown
+	Appears when a tokens type can not be resolved. Hopefully impossible to find.

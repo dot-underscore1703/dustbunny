@@ -53,3 +53,26 @@ For this reason, you should make sure that the buffer you give it atleast 15 byt
 
 Returns a char* string on success, NULL on failure.
 Fails if buffer_len is less than 15.
+
+## Token Types
+- TokenText
+	TokenText hold string values. They are used for anything that is not symbols (|, >, etc) or escaped chars, (e.g, \| becomes "|")
+- TokenNewline
+	Appears on newline ('\n', 0x0A, Enter). Often used as command terminator.
+- TokenSemicolon
+	Appears on semicolon (';', 0x3B). Often used as command terminator.
+- TokenPipe
+	Appears on pipe ('|', 0x7C). Used to pipe the left command to the right command.
+- TokenDblPipe
+	Appears on two subsequent pipes ('||', 0x7C 0x7C). Used for conditional execution.
+- TokenBracketIn
+	Appears on lesser than angle bracket ('<',0x3C). Used for piping the contents of files into a programs stdin.
+- TokenBracketOut
+	Appears on greater than anglebracket ('>', 0x3E). used for piping the stdout of a program to a file.
+- TokenEquals
+	Appears on equals sign ('=',0x3D). Used for setting environment variables. However, the tokeniser should not use TokenEquals if the character appears after the first word.
+	E.g 'FOO=BAR' will produce TokenEquals, but 'command foo=bar' will just make argv1 TokenText("foo=bar")
+- TokenAmpersand
+	Appears on ampersand ('&', 0x26). Used to push a process to the background.
+- TokenDblAmpersand
+	Appears on two subsequent ampersands ('&&',0x26 0x26). Used for conditional execution.

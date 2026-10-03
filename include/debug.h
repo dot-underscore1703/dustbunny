@@ -1,7 +1,8 @@
-#ifndef LDB_DEBUG_H
-#define LDB_DEBUG_H
+#ifndef DEBUG_H
+#define DEBUG_H
 
-int is_debug;
+extern int is_debug;
+
 void dustbunny_debug(char *fmt, ...);
 
 #endif

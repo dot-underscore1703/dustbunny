@@ -5,7 +5,7 @@
 
 typedef enum { 
 	TokenText, 
-	TokenTerminator,
+	TokenNewline,
 	TokenSemicolon, 
 	TokenPipe,
 	TokenDblPipe,

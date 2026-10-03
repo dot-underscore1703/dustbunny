@@ -6,13 +6,21 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <libdustbunny/version.h>
 #include "version.h"
-#include "command.h"
+
+size_t __get_argc(char **argv) {
+	size_t i = 0;
+	while(*argv != NULL) {
+		++i;
+		++*argv;
+	}
+	*argv -= i;
+	return i;
+}
 
 /// Builtin command for printing help screen and usage, alongside other details like version, license etc.
 void builtins_help(char **argv) {
-	if(get_argc(argv) > 1){
+	if(__get_argc(argv) > 1){
 		if(strcmp(argv[1],"help") == 0) {
 			printf("print help and information about dustbunny or a specific command");
 		} else if(strcmp(argv[1],"exit") == 0) {
@@ -46,8 +54,7 @@ void builtins_help(char **argv) {
 		"___________________________________________________█__█_\n" 
 		"____________________________________________________███_\n\n" 
 		"DUSTBUNNY %i.%i.%i\n"
-		"Compiled with libdustbunny %i.%i.%i\n\n"
-		"Copyright (c) %i %s, %s\n\n"
+		"Copyright (c) %i Rory Lane, MIT\n\n"
 		"Built-in commands:\n\t"
 		"help <builtin>			- print help and information about dustbunny or a specific command\n\t"
 		"exit/quit				- exit dustbunny\n\t"
@@ -55,26 +62,19 @@ void builtins_help(char **argv) {
 		"cd <path to directory>	- change current directory (this is cd)\n\t"
 		"echo <args>			- print args\n\t"
 		"pwd					- print working directory\n\n"
-		"View the repo at %s.\n",
+		"View the repo at https://github.com/dot-underscore1703/dustbunny.\n",
 		DUSTBUNNY_VERSION_MAJOR,
 		DUSTBUNNY_VERSION_MINOR,
 		DUSTBUNNY_VERSION_PATCH,
-
-		LIBDUSTBUNNY_VERSION_MAJOR,
-		LIBDUSTBUNNY_VERSION_MINOR,
-		LIBDUSTBUNNY_VERSION_PATCH.
 		
-		DUSTBUNNY_RELEASE_YEAR,
-		DUSTBUNNY_AUTHOR,
-		DUSTBUNNY_LICENSE,
-		DUSTBUNNY_REPO
+		DUSTBUNNY_RELEASE_YEAR
 	);
 }
 
 /// Builtin command for changing of directories. The user may either simply enter a path to a directory, or prefix the path with the 'cd' command.
 void builtins_cd(char **argv) {
 	if(strcmp(argv[0], "cd") == 0){
-		if (get_argc(argv) > 2) {
+		if (__get_argc(argv) > 2) {
 			fprintf(stderr,"dustbunny: Too many arguments\n");
 		} else {
 			if (chdir(argv[1]) != 0) {
@@ -85,7 +85,7 @@ void builtins_cd(char **argv) {
 		}
 		return;
 	}
-	if (get_argc(argv) > 1) {
+	if (__get_argc(argv) > 1) {
 		fprintf(stderr,"dustbunny: Too many arguments\n");
 	} else {
 		if (chdir(argv[0]) != 0) {

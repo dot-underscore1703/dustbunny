@@ -13,7 +13,9 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 add_executable(dustbunny
 	src/parser.c
-	src/command.c
+	src/debug.c
+	src/nodes.c
+	src/interpreter.h
 	src/main.c
 	src/builtins.c
 	src/tokens.c
@@ -22,13 +24,8 @@ add_executable(dustbunny
 
 target_include_directories(dustbunny PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-target_link_directories(dustbunny PRIVATE
-	/usr/local/lib64
-)
-
 target_link_libraries(dustbunny PRIVATE 
 	readline
-	dustbunny
 )
 
 include(GNUInstallDirs)

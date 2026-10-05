@@ -5,7 +5,10 @@
 
 typedef enum { 
 	TokenText, 
+	TokenQuote,
+	TokenDblQuote,
 	TokenNewline,
+	TokenSpace,
 	TokenSemicolon, 
 	TokenPipe,
 	TokenDblPipe,

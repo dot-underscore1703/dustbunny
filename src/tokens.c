@@ -8,8 +8,11 @@
 #include "debug.h"
 
 typedef enum { 
-	TokenText, 
+	TokenText,
+	TokenQuote,
+	TokenDblQuote, 
 	TokenNewline,
+	TokenSpace,
 	TokenSemicolon, 
 	TokenPipe,
 	TokenDblPipe,
@@ -72,19 +75,28 @@ char* token_type_as_str(char *buffer, size_t buffer_len, Token *token){
 			dustbunny_debug("buffer size not large enough to hold string");
 			return NULL;
 		}
+
+		// Check that token isnt null
+		if(token == NULL){
+			dustbunny_debug("token was null");
+			return NULL;
+		}
 		
 		switch(token->type){
-			case TokenText: strcpy(buffer, "TokenText"); break;
-			case TokenNewline: strcpy(buffer, "TokenNewline"); break;
-			case TokenSemicolon: strcpy(buffer, "TokenSemicolon"); break;
-			case TokenPipe: strcpy(buffer, "TokenPipe"); break;
-			case TokenDblPipe: strcpy(buffer, "TokenDblPipe"); break;
-			case TokenBracketIn: strcpy(buffer, "TokenBracketIn"); break;
-			case TokenBracketOut: strcpy(buffer, "TokenBracketOut"); break;
-			case TokenEquals: strcpy(buffer, "TokenEquals"); break;
-			case TokenAmpersand: strcpy(buffer, "TokenAmpersand"); break;
-			case TokenDblAmpersand: strcpy(buffer, "TokenDblAmpersand"); break;
-			default: strcpy(buffer,"TokenUnknown"); break;
+			case TokenText: buffer = strcpy(buffer, "TokenText"); break;
+			case TokenQuote: buffer = strcpy(buffer, "TokenQuote"); break;
+			case TokenDblQuote: buffer = strcpy(buffer, "TokenDblQuote"); break;
+			case TokenNewline: buffer = strcpy(buffer, "TokenNewline"); break;
+			case TokenSpace: buffer = strcpy(buffer, "TokenSpace"); break;
+			case TokenSemicolon: buffer = strcpy(buffer, "TokenSemicolon"); break;
+			case TokenPipe: buffer = strcpy(buffer, "TokenPipe"); break;
+			case TokenDblPipe: buffer = strcpy(buffer, "TokenDblPipe"); break;
+			case TokenBracketIn: buffer = strcpy(buffer, "TokenBracketIn"); break;
+			case TokenBracketOut: buffer = strcpy(buffer, "TokenBracketOut"); break;
+			case TokenEquals: buffer = strcpy(buffer, "TokenEquals"); break;
+			case TokenAmpersand: buffer = strcpy(buffer, "TokenAmpersand"); break;
+			case TokenDblAmpersand: buffer = strcpy(buffer, "TokenDblAmpersand"); break;
+			default: buffer = strcpy(buffer,"TokenUnknown"); break;
 		}
 
 		dustbunny_debug("concluded token type as %s",buffer);

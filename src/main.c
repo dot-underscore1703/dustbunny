@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
 					printf("%s()\n",token_type_as_str(typebuf, 20, token));
 				}
 			
-				//token_destroy(token);
+				token_destroy(token);
 			}
 		}
 

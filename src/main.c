@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 			case 'c': {
 				input_method = 0;
 
-				if(optarg == NULL){
+				if((user_input = optarg) == NULL){
 					exit(EXIT_FAILURE);
 				} 
 				
@@ -81,9 +81,7 @@ int main(int argc, char **argv) {
 	}
   	
   	while (1) {
-  		if(!input_method) {
-  			user_input = argv[1];
-  		}else {
+  		if(input_method) {
   			user_input = readline(": ");
   		}
   		
@@ -111,12 +109,12 @@ int main(int argc, char **argv) {
 			}
 		}
 
-		if(input_method == 2) {
-		  	break;
-		}	
-
-    	free(user_input);
-    	user_input = NULL;
+		if(!input_method) {
+		  	exit(EXIT_SUCCESS);
+		}else{	
+    		free(user_input);
+    		user_input = NULL;
+    	}
   	}
 
   	fprintf(stderr, "%s: goodbye!\n",dustbunny_program_name);

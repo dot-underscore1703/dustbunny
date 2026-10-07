@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
       				"Dustbunny version %i.%i.%i\n"
 					"Copyright (c)     %i Rory Lane.\n"
 					"License           MIT\n"
-					"Compiled on %s at %s.\n\n"
+					"Compiled on       %s at %s.\n\n"
 					"You can view the Dustbunny repo at https://github.com/dot-underscore1703/dustbunny\n",
            			DUSTBUNNY_VERSION_MAJOR, DUSTBUNNY_VERSION_MINOR, DUSTBUNNY_VERSION_PATCH, 
 					DUSTBUNNY_RELEASE_YEAR,

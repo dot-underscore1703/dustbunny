@@ -11,7 +11,7 @@
 // TODO: Messy code, fix it.
 
 int __write_and_realloc(
-	char **buffer, 
+	char *buffer, 
 	size_t *buf_size, 
 	size_t *amount_written, 
 	char to_write
@@ -34,12 +34,12 @@ int __write_and_realloc(
 		tmp = NULL;
 	}
 
-	*buffer[(*amount_written)++] = to_write;
+	buffer[(*amount_written)++] = to_write;
 	return 0;
 }
 
 size_t __finalise_and_write_token(
-	char **text_buffer,
+	char *text_buffer,
 	size_t *text_buf_size,
 	size_t *text_written,
 	 
@@ -56,7 +56,7 @@ size_t __finalise_and_write_token(
 		'\0'
 	);
 	
-	token_buffer[(*tokens_written)++] = token_new(TokenText, strdup(*text_buffer));
+	token_buffer[(*tokens_written)++] = token_new(TokenText, strdup(text_buffer));
 
 	// clean up and reset temporaries to be reused.
 	*text_buf_size = 32;
@@ -92,7 +92,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			
 				if(text_written > 0) {
 					__finalise_and_write_token(
-						&tmp_text_buf,
+						tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -110,7 +110,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 				
 				if(text_written > 0) {
 					__finalise_and_write_token(
-						&tmp_text_buf,
+						tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -126,7 +126,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			
 				if(in_quotes == DOUBLE_QUOTES) {
 					__write_and_realloc(
-						&tmp_text_buf,
+						tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						'\''
@@ -140,7 +140,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 
 				if(text_written > 0){
 					__finalise_and_write_token(
-						&tmp_text_buf,
+						tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -158,7 +158,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			
 				if(in_quotes == SINGLE_QUOTES) {
 					__write_and_realloc(
-						&tmp_text_buf,
+						tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						'"'
@@ -172,7 +172,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 
 				if(text_written > 0){
 					__finalise_and_write_token(
-						&tmp_text_buf,
+						tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -197,7 +197,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 				}
 				
 				__write_and_realloc(
-					&tmp_text_buf, 
+					tmp_text_buf, 
 					&tmp_text_size, 
 					&text_written, 
 					to_write
@@ -209,7 +209,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 				
 				if(text_written > 0) {
 					__finalise_and_write_token(
-						&tmp_text_buf,
+						tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -233,7 +233,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 				
 				if(text_written > 0) {
 					__finalise_and_write_token(
-						&tmp_text_buf,
+						tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -250,7 +250,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 				dustbunny_debug("found bracketout");
 				if(text_written > 0) {
 					__finalise_and_write_token(
-						&tmp_text_buf,
+						tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -267,7 +267,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 				dustbunny_debug("found equals");
 				if(first_token){
 					__finalise_and_write_token(
-						&tmp_text_buf,
+						tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -278,7 +278,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 					first_token = 0;
 				}else {
 					__write_and_realloc(
-						&tmp_text_buf, 
+						tmp_text_buf, 
 						&tmp_text_size, 
 						&text_written, 
 						'='
@@ -290,7 +290,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			case '&': {
 				if(text_written > 0) {
 					__finalise_and_write_token(
-						&tmp_text_buf,
+						tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -313,7 +313,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			default: {
 				dustbunny_debug("defaulting");
 				__write_and_realloc(
-					&tmp_text_buf, 
+					tmp_text_buf, 
 					&tmp_text_size, 
 					&text_written, 
 					input[idx]
@@ -325,7 +325,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 	if(text_written > 0) {
 		dustbunny_debug("cleaning up untokenised text");
 		__finalise_and_write_token(
-			&tmp_text_buf,
+			tmp_text_buf,
 			&tmp_text_size,
 			&text_written,
 			token_buffer,
@@ -333,8 +333,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 		);
 	}
 	
-	token_buffer[tokens_written++] = NULL;
+	token_buffer[tokens_written] = NULL;
 	dustbunny_debug("Tokens written:%i",tokens_written);
 	return tokens_written;
 } 
-

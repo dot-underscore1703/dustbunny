@@ -54,7 +54,8 @@ void builtins_help(char **argv) {
 		"___________________________________________________█__█_\n" 
 		"____________________________________________________███_\n\n" 
 		"DUSTBUNNY %i.%i.%i\n"
-		"Copyright (c) %i Rory Lane, MIT\n\n"
+		"Copyright (c) %i Rory Lane, MIT\n"
+		"Compiled on %s at %s.\n\n"
 		"Built-in commands:\n\t"
 		"help <builtin>			- print help and information about dustbunny or a specific command\n\t"
 		"exit/quit				- exit dustbunny\n\t"
@@ -67,7 +68,10 @@ void builtins_help(char **argv) {
 		DUSTBUNNY_VERSION_MINOR,
 		DUSTBUNNY_VERSION_PATCH,
 		
-		DUSTBUNNY_RELEASE_YEAR
+		DUSTBUNNY_RELEASE_YEAR,
+
+		__DATE__,
+		__TIME__
 	);
 }
 

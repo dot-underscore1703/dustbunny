@@ -27,6 +27,7 @@ typedef enum {
 typedef struct Token {
   TokenType type;
   char *value;
+  size_t val_len;
 } Token;
 
 /// Create new token
@@ -44,7 +45,13 @@ Token *token_new(TokenType type, char *value) {
 	// Token type is important so the parser knows how to use the token when constructing the AST
 	new_token->type = type;
 
-	new_token->value = value ? strdup(value) : NULL;
+	if(value){
+		new_token->value = strdup(value);
+		new_token->val_len = strlen(value);
+	}else {
+		new_token-> value = NULL;
+		new_token->val_len = -1;
+	}
 	return new_token;
 }
 

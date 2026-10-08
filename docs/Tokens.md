@@ -59,8 +59,14 @@ Fails if buffer_len is less than 19.
 ## Token Types
 - TokenText
 	TokenText hold string values. They are used for anything that is not symbols (|, >, etc) or escaped chars, (e.g, \| becomes "|")
+- TokenQuote
+	Appears on quote (''', 0x27). Used in preprocessing to mark and format args, discarded before AST build.
+- TokenDblQuote
+	Appears on double quote ('"', 0x22). Used in preprocessing to mark and format args, discarded before AST build.
 - TokenNewline
 	Appears on newline ('\n', 0x0A, Enter). Often used as command terminator.
+- TokenSpace
+	Appears on space (' ', 0x20). Used to mark where tokens start and stop, often in quoting. Used in preprocessing, discarded before AST build.
 - TokenSemicolon
 	Appears on semicolon (';', 0x3B). Often used as command terminator.
 - TokenPipe

@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
 			}
 			case 'd': {
 				is_debug = 1;
-				dustbunny_debug("debug mode activated with --debug");
+				dustbunny_debug("debug prints activated with -d");
 				break;
 			}
 			case 't': {

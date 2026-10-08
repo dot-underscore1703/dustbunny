@@ -1,16 +1,7 @@
 # Dustbunny
-```
-_____█________________█___█_____________________________ 
-_____█________________█___█_____________________________
-__████__█__█___███__████__████___█__█__███___███___█__█_ 
-_█___█__█__█__██______█___█___█__█__█__█__█__█__█__█__█_ 
-_█___█__█__█____█_____█___█___█__█__█__█__█__█__█__█__█_ 
-__████__███___████____█___████___███___█__█__█__█___███_
-______________________________________________________█_
-___________________________________________________█__█_
-____________________________________________________███_ 
-```
-Dustbunny is a hobby shell targetted at Linux systems. It serves as an exercise for me learning the C Programming Language, and disciplining me as a programmer in general.
+<img src="./assets/dustbunnylogotext.png" alt="Dustbunny logo" width="50%">
+
+Dustbunny is a hobby shell designed for Unix systems. It serves as an exercise for me learning the C Programming Language, and disciplining me as a programmer in general.
 
 Dustbunny is not intended to be 100% POSIX compliant.
 

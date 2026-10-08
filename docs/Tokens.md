@@ -6,7 +6,7 @@ typedef struct Token {
   char *value;
 } Token;
 ```
-A token in libdustbunny contains two simple fields.
+A token in dustbunny contains two simple fields.
 The first is the type, which contains the type of the token so the parser knows how to use it when building the AST.
 The first is the value, a text string that contains important values for the parser such as arguments for the argv array or filepaths.
 

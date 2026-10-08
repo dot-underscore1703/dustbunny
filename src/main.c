@@ -61,6 +61,7 @@ int main(int argc, char **argv) {
 			}
 			case 't': {
 				print_only = 1;
+				dustbunny_debug("show tokens only activated with -t");
 				break;
 			}
 			case 'c': {

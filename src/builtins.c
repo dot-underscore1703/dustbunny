@@ -6,7 +6,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "version.h"
+#include "dustbunny.h"
 
 size_t __get_argc(char **argv) {
 	size_t i = 0;
@@ -79,23 +81,45 @@ void builtins_help(char **argv) {
 void builtins_cd(char **argv) {
 	if(strcmp(argv[0], "cd") == 0){
 		if (__get_argc(argv) > 2) {
-			fprintf(stderr,"dustbunny: Too many arguments\n");
+			fprintf(stderr,"%s: Too many arguments\n",dustbunny_program_name);
 		} else {
-			if (chdir(argv[1]) != 0) {
+			char *old_pwd = getenv("PWD");
+
+			char *path;
+			if(strcmp("-", argv[1]) == 0){
+				path = getenv("OLDPWD");
+			}else {
+				path = argv[1];
+			}
+			if (chdir(path) != 0) {
 				perror("dustbunny: chdir");
 			}else{
-				printf("dustbunny: new working dir: '%s'\n",argv[1]);
+				if(setenv("PWD", path, 1)){
+					perror("dustbunny: cd:");
+				}
+				if(setenv("OLDPWD", old_pwd, 1)){
+					perror("dustbunny: cd:");
+				}
+				
+				printf("%s: pwd: '%s'\n",dustbunny_program_name,argv[1]);
 			}
 		}
 		return;
 	}
 	if (__get_argc(argv) > 1) {
-		fprintf(stderr,"dustbunny: Too many arguments\n");
+		fprintf(stderr,"%s: Too many arguments\n",dustbunny_program_name);
 	} else {
+		char *old_pwd = getenv("PWD");
 		if (chdir(argv[0]) != 0) {
 			perror("dustbunny: chdir");
 		}else{
-			printf("dustbunny: new working dir: '%s'\n",argv[0]);
+			if(setenv("PWD", argv[1], 1)){
+				perror("dustbunny: cd:");
+			}
+			if(setenv("OLD_PWD", old_pwd, 1)){
+				perror("dustbunny: cd:");
+			}
+			printf("%s: new working dir: '%s'\n",dustbunny_program_name,argv[0]);
 		}
 	}
 }

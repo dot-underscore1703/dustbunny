@@ -38,7 +38,7 @@ int __write_and_realloc(
 	return 0;
 }
 
-size_t __finalise_and_write_token(
+void __finalise_and_write_token(
 	char *text_buffer,
 	size_t *text_buf_size,
 	size_t *text_written,

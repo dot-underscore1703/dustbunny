@@ -83,7 +83,7 @@ int node_destroy(Node *node) {
 	// === I haven't checked that this works yet, its a bit confusing ;-; but it'll be fixed ===
 	
 	// Free the fields first so we dont get dangly variables with no pointer causing a memory leak
-	free(&node->type);
+	// node->type should go out of scope.
 	free(node->value);
 
 	// there is probably a better way to do this but iteratively should work for now.

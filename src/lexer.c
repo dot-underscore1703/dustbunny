@@ -84,6 +84,8 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 	size_t tmp_text_size = 32;
 	char *tmp_text_buf = malloc(tmp_text_size);
 	size_t text_written = 0;
+
+	TokenType last_type = TokenUnknown;
 	
 	for(size_t idx = 0; input[idx] != '\0'; ++idx) {
 		switch(input[idx]) {
@@ -99,10 +101,11 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 						&tokens_written	
 					);
 				}
+				if(last_type != TokenSpace){
+					token_buffer[tokens_written++] = 
+						token_new(TokenSpace, NULL);
 
-				token_buffer[tokens_written++] = 
-					token_new(TokenSpace, NULL);
-
+				}
 				break;
 			}
 			case '\n': {
@@ -369,6 +372,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 				break;
 			}
 		}
+		last_type = token_buffer[tokens_written]->type;
 	}
 	if(text_written > 0) {
 		dustbunny_debug("cleaning up untokenised text");

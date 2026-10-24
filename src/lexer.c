@@ -329,7 +329,6 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			}
 
 			case '&': {
-
 				if(in_quotes){
 					__write_and_realloc(
 						tmp_text_buf, 
@@ -358,6 +357,31 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 				}
 
 				first_token = 0;
+				break;
+			}
+			case '#': {
+				if(in_quotes){
+					__write_and_realloc(
+						tmp_text_buf, 
+						&tmp_text_size, 
+						&text_written, 
+						'#'
+					);	
+					break;
+				}
+				if(text_written > 0) {
+					__finalise_and_write_token(
+						tmp_text_buf,
+						&tmp_text_size,
+						&text_written,
+						token_buffer,
+						&tokens_written	
+					);
+				}
+				// hahahaha fucking destroy EVERYTHING
+				while(input[idx] != '\0' && input[idx] != '\n') {
+					continue;			
+				}
 				break;
 			}			
 			

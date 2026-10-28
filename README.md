@@ -16,3 +16,13 @@ cmake --install build
 
 ### Interested in Contributing?
 Check out docs/CONTRIBUTING.md in this repo.
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=dot-underscore1703%2Fdustbunny&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=dot-underscore1703/dustbunny&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=dot-underscore1703/dustbunny&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=dot-underscore1703/dustbunny&type=date&legend=top-left" />
+ </picture>
+</a>

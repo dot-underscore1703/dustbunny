@@ -210,5 +210,17 @@ int rem_shellvar(char *key){
 	remove_key(key);	
 }
 
+/// Get the value of a shell variable.
+char *get_shellvar(char *key) {
+	dustbunny_debug("finding value for %s shell variable", key);
+
+
+	uint32_t idx;
+	if(find_slot('t', key, &idx, 0)){
+		dustbunny_debug("error looking up slot");
+	}
+
+	return shell_variables[idx]->value;
+}
 // Little bits like this is why I love programming.
 // Until I don't, of course.

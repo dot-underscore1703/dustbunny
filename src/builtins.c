@@ -10,7 +10,7 @@
 #include "version.h"
 #include "dustbunny.h"
 
-size_t __get_argc(char **argv) {
+static size_t get_argc(char **argv) {
 	size_t i = 0;
 	while(*argv != NULL) {
 		++i;
@@ -22,7 +22,7 @@ size_t __get_argc(char **argv) {
 
 /// Builtin command for printing help screen and usage, alongside other details like version, license etc.
 void builtins_help(char **argv) {
-	if(__get_argc(argv) > 1){
+	if(get_argc(argv) > 1){
 		if(strcmp(argv[1],"help") == 0) {
 			printf("print help and information about dustbunny or a specific command");
 		} else if(strcmp(argv[1],"exit") == 0) {
@@ -80,7 +80,7 @@ void builtins_help(char **argv) {
 /// Builtin command for changing of directories. The user may either simply enter a path to a directory, or prefix the path with the 'cd' command.
 void builtins_cd(char **argv) {
 	if(strcmp(argv[0], "cd") == 0){
-		if (__get_argc(argv) > 2) {
+		if (get_argc(argv) > 2) {
 			fprintf(stderr,"%s: Too many arguments\n",dustbunny_program_name);
 		} else {
 			char *old_pwd = getenv("PWD");
@@ -106,7 +106,7 @@ void builtins_cd(char **argv) {
 		}
 		return;
 	}
-	if (__get_argc(argv) > 1) {
+	if (get_argc(argv) > 1) {
 		fprintf(stderr,"%s: Too many arguments\n",dustbunny_program_name);
 	} else {
 		char *old_pwd = getenv("PWD");

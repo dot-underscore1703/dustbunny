@@ -15,10 +15,11 @@
 // We can't just use strings because we still need a way to store the string.
 // You could argue that we do store the string because we store the hash,
 // but in the event of a collission the string may not be stored at that index.
-// which is why we use this struct/
+// which is why we use this struct, it also allows use to save if its exported or not
 typedef struct ShellVariable {
 	char *key;
 	char *value;
+	int exported;
 } ShellVariable;
 
 // macros used in hashing
@@ -106,8 +107,23 @@ static int find_slot(char type, char *key, uint32_t *output, int return_match) {
 	return 0;
 }
 
+/// Export keys into the environment
+static int export_key(uint32_t idx) {
+	if(setenv(
+		shell_variables[idx]->key, 
+		shell_variables[idx]->value,
+		1
+	)){
+		return 1;
+	}
+
+	shell_variables[idx]->exported = 1;
+	
+	return 0;
+}
+
 /// Insert a key with key and value. Will overwrite existing values if overwrite is truthy.
-static int insert_key(char *key, char *value, int overwrite) {
+static int insert_key(char *key, char *value, int overwrite, int exported) {
 	dustbunny_debug("inserting new shell variable key");
 
 	ShellVariable *new_var = malloc(sizeof(ShellVariable));
@@ -119,6 +135,7 @@ static int insert_key(char *key, char *value, int overwrite) {
 
 	new_var->key = key;
 	new_var->value = value;
+	new_var->exported = exported;
 
 	// this will give us the index of the closest empty slot next to key
 	uint32_t idx;
@@ -155,24 +172,32 @@ static int rehash_keys() {
 		if(!shell_variables[i]) continue;
 		char *key = shell_variables[i]->key;
 		char *value = shell_variables[i]->value;
+		int is_exported = shell_variables[i]->exported;
 
 		// this probably doesnt work.
 		// infact thinking of the potential bug has demotivated me.
 		remove_key(key);
 
-		insert_key(key, value, 1);
+		insert_key(key, value, 1, is_exported);
 	}
 	return 0;	
 }
 
 /// Allocate space for the shell environment.
-void init_shellenv() {
+void init_shellenv(char **envp) {
 	 shell_variables = malloc(sizeof(ShellVariable*) * environment_size);
-	 return;
+
+	while(*envp != NULL){
+		if(insert_key(strtok(*envp, "="), strtok(NULL, "="), 1, 1)){
+			dustbunny_debug("failure inserting environment key to shell environment");
+		}		
+	}
+	 
+	return;
 }
 
 /// Add a shell variable to the environment, hash the key and store it.
-int add_shellvar(char *key, char* value, int overwrite) {
+int add_shellvar(char *key, char* value, int overwrite, int export) {
 	dustbunny_debug("adding shell variable %s with value of %s",key,value);	
 
 	// this math gives us the usage as a percentage
@@ -192,8 +217,26 @@ int add_shellvar(char *key, char* value, int overwrite) {
 		rehash_keys();
 	}
 
-	if(insert_key(key, value,overwrite)){
+	if(insert_key(key, value, overwrite, export)){
 		dustbunny_debug("error inserting key");
+		return 1;
+	}
+
+	return 0;
+}
+
+int export_shellvar(char *key) {
+	dustbunny_debug("exporting shellvar");
+
+	uint32_t idx;
+
+	if(find_slot('t', key, &idx, 0)) {
+		dustbunny_debug("error finding var to export");
+		return 1;
+	}
+
+	if(export_key(idx)){
+		dustbunny_debug("error exporting variable");
 		return 1;
 	}
 

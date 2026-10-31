@@ -20,6 +20,8 @@ add_executable(dustbunny
 	src/builtins.c
 	src/tokens.c
 	src/debug.c
+	src/variables.c
+	src/preproc.c
 )
 
 target_include_directories(dustbunny PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

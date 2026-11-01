@@ -10,7 +10,7 @@
 #define DOUBLE_QUOTES 2 	// ""
 
 /// Calculate available size and append text to a string. Reallocates if necessary.
-char *__add_and_realloc(char *to, char *from){
+static char *add_and_realloc(char *to, char *from){
 	dustbunny_debug("adding text to temporary token string");
 
 	size_t from_size = strlen(from);
@@ -30,7 +30,7 @@ char *__add_and_realloc(char *to, char *from){
 	return strcat(to, from);
 }
 
-char *__expand_string(char *str) {
+static char *expand_string(char *str) {
 	char *expanded = malloc(32);
 
 	size_t i;
@@ -40,17 +40,17 @@ char *__expand_string(char *str) {
 			switch(str[++i]){
 				case '/': {
 					char *home_dir = getenv("HOME");
-					expanded = __add_and_realloc(expanded, home_dir);
+					expanded = add_and_realloc(expanded, home_dir);
 					break;
 				}
 				case '+': {
 					char *working_dir = getenv("PWD");
-					expanded = __add_and_realloc(expanded, working_dir);
+					expanded = add_and_realloc(expanded, working_dir);
 					break;
 				}
 				case '-': {
 					char *previous_dir = getenv("OLDPWD");
-					expanded = __add_and_realloc(expanded, previous_dir);
+					expanded = add_and_realloc(expanded, previous_dir);
 				}
 			}
 		}else if(c == '$'){
@@ -64,7 +64,7 @@ char *__expand_string(char *str) {
 			}
 
 			char *variable = getenv(varstr);
-			expanded = __add_and_realloc(expanded, variable);
+			expanded = add_and_realloc(expanded, variable);
 		}
 	}
 	return expanded;
@@ -95,10 +95,10 @@ Token **preprocess_tokens(Token **tokens) {
 				break;
 			}
 			case TokenText: {
-				token->value = __expand_string(token->value);
+				token->value = expand_string(token->value);
 				
 				if(in_quotes){
-					__add_and_realloc(tmp_text,token->value);										
+					add_and_realloc(tmp_text,token->value);										
 				}else {
 					processed[tokens_written++] = token;
 				}
@@ -122,14 +122,15 @@ Token **preprocess_tokens(Token **tokens) {
 						return NULL;	
 					}
 					
-					__add_and_realloc(tmp_space_buf, tmp_text);					
+					add_and_realloc(tmp_space_buf, tmp_text);					
 				}
 				break;
 			}
 			default: {
-				
+				processed[tokens_written++] = token;
 			}
 		}
 		++tokens;
 	}
+	return processed;
 }	

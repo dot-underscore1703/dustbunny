@@ -147,28 +147,24 @@ void builtins_pwd(){
 	return;	
 }
 
-int builtins_export(char **argv) {
-    if (strcmp(argv[0], "export") == 0) {
-        if (get_argc(argv) > 2) {
-            printf("%s: Too many arguments\n", dustbunny_program_name);
-        } else {
-            // use '=' because we need the character and not a string containing =
-            char *equals = strchr(argv[1], '=');
+void builtins_export(char **argv) {
+	if (get_argc(argv) > 2) {
+		printf("%s: Too many arguments\n", dustbunny_program_name);
+		return;
+	}
+	// use '=' because we need the character and not a string containing =
+	char *equals = strchr(argv[1], '=');
 
-            // if equals was found
-            if (equals != NULL) {
-                *equals = '\0';
-                char *env_name = argv[1];
-                char *env_value = equals + 1;
-
-                setenv(env_name, env_value, 1);
-
-                return 0;
-            } else {
-                return 1;
-            }
-        }
+	// if equals was found
+	if (equals == NULL) {
+    	return;
     }
-    // return 1 if the command ran wasn't export
-    return 1;
+        
+    *equals = '\0';
+    char *env_name = argv[1];
+    char *env_value = equals + 1;
+
+    setenv(env_name, env_value, 1);
+    
+    return;
 }

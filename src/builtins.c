@@ -37,7 +37,9 @@ void builtins_help(char **argv) {
 				"you may also omit the 'cd' and simply type a directory path, dustbunny will put you there anyways\n"
 			);
 			
-		}else if(strcmp(argv[1],"echo") == 0){
+		} else if(strcmp(argv[1],"export") == 0) {
+                        printf("change or add an environment variable\n");
+                }else if(strcmp(argv[1],"echo") == 0){
 			printf("print args\n");
 
 		}else if(strcmp(argv[1],"pwd") == 0){
@@ -63,6 +65,7 @@ void builtins_help(char **argv) {
 		"exit/quit				- exit dustbunny\n\t"
 		"<path to directory>	- change current directory (like cd)\n\t"
 		"cd <path to directory>	- change current directory (this is cd)\n\t"
+                "export                 - change or add an environment variable\n\t"
 		"echo <args>			- print args\n\t"
 		"pwd					- print working directory\n\n"
 		"View the repo at https://github.com/dot-underscore1703/dustbunny.\n",
@@ -142,4 +145,30 @@ void builtins_pwd(){
 		perror("dustbunny");
 	}
 	return;	
+}
+
+int builtins_export(char **argv) {
+    if (strcmp(argv[0], "export") == 0) {
+        if (get_argc(argv) > 2) {
+            printf("%s: Too many arguments\n", dustbunny_program_name);
+        } else {
+            // use '=' because we need the character and not a string containing =
+            char *equals = strchr(argv[1], '=');
+
+            // if equals was found
+            if (equals != NULL) {
+                *equals = '\0';
+                char *env_name = argv[1];
+                char *env_value = equals + 1;
+
+                setenv(env_name, env_value, 1);
+
+                return 0;
+            } else {
+                return 1;
+            }
+        }
+    }
+    // return 1 if the command ran wasn't export
+    return 1;
 }

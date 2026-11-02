@@ -19,7 +19,7 @@
 typedef struct ShellVariable {
 	char *key;
 	char *value;
-	int exported;
+	uint8_t exported;
 } ShellVariable;
 
 // macros used in hashing
@@ -47,7 +47,7 @@ size_t stored_variables = 0;
 /// searching for taken slots will return the index where the variable is stored
 /// searching for empty slots will return the index of the nearest empty slot to a key.
 /// will return -1 on failure
-static int find_slot(char type, char *key, uint32_t *output, int return_match) {
+static int find_slot(char type, char *key, uint32_t *output, uint8_t return_match) {
 	uint32_t idx = hash_key(key) % environment_size;
 
 	// dont modify idx, it makes searching for free spots faster if we have to reverse direction and move back
@@ -55,7 +55,7 @@ static int find_slot(char type, char *key, uint32_t *output, int return_match) {
 
 	// Controls which way across we are looking for a free spot.
 	// 1 = look right, otherwise look left. We will only look left if there is no available spots to the right. 
-	int direction = 1;
+	uint8_t direction = 1;
 	
 	if(type == 'e'){
 		// find the next empty slot to the right, if none exist, go back to the start and search left
@@ -109,21 +109,12 @@ static int find_slot(char type, char *key, uint32_t *output, int return_match) {
 
 /// Export keys into the environment
 static int export_key(uint32_t idx) {
-	if(setenv(
-		shell_variables[idx]->key, 
-		shell_variables[idx]->value,
-		1
-	)){
-		return 1;
-	}
-
 	shell_variables[idx]->exported = 1;
-	
 	return 0;
 }
 
 /// Insert a key with key and value. Will overwrite existing values if overwrite is truthy.
-static int insert_key(char *key, char *value, int overwrite, int exported) {
+static int insert_key(char *key, char *value, uint8_t overwrite, uint8_t exported) {
 	dustbunny_debug("inserting new shell variable key");
 
 	ShellVariable *new_var = malloc(sizeof(ShellVariable));
@@ -172,7 +163,7 @@ static int rehash_keys() {
 		if(!shell_variables[i]) continue;
 		char *key = shell_variables[i]->key;
 		char *value = shell_variables[i]->value;
-		int is_exported = shell_variables[i]->exported;
+		uint8_t is_exported = shell_variables[i]->exported;
 
 		// this probably doesnt work.
 		// infact thinking of the potential bug has demotivated me.
@@ -197,7 +188,7 @@ void init_shellenv(char **envp) {
 }
 
 /// Add a shell variable to the environment, hash the key and store it.
-int add_shellvar(char *key, char* value, int overwrite, int export) {
+int add_shellvar(char *key, char* value, uint8_t overwrite, uint8_t export) {
 	dustbunny_debug("adding shell variable %s with value of %s",key,value);	
 
 	// this math gives us the usage as a percentage
@@ -250,7 +241,12 @@ int rem_shellvar(char *key){
 	// what does this function even need to do bro why does it exist.
 	// dont they do this in libc. i'll be fine, right?
 
-	remove_key(key);	
+	if(remove_key(key)){
+		dustbunny_debug("error removing variable");
+		return 1;
+	}	
+
+	return 0;
 }
 
 /// Get the value of a shell variable.

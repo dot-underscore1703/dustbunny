@@ -155,11 +155,11 @@ void builtins_export(char **argv) {
 	// use '=' because we need the character and not a string containing =
 	char *equals = strchr(argv[1], '=');
 
-	// if equals was found
-	if (equals == NULL) {
+	if (!equals) {
     	return;
     }
-        
+
+    // if equals was found    
     *equals = '\0';
     char *env_name = argv[1];
     char *env_value = equals + 1;

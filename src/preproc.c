@@ -30,49 +30,61 @@ static char *add_and_realloc(char *to, char *from){
 	return strcat(to, from);
 }
 
-static char *expand_string(char *str) {
+static char *expand_string(char *str, int quoting) {
 	char *expanded = malloc(32);
 
-	size_t i;
-	for(i = 0; i < strlen(str); ++i) {
-		char c = str[i];
-		if(i == 0 && c == '~'){
+	// so strlen doesnt fucking shit itself
+	expanded[0] = '\0';
+
+	for(size_t i = 0; i < strlen(str); ++i) {
+		if(i == 0 && str[i] == '~' && quoting == NO_QUOTES){
 			switch(str[++i]){
 				case '/': {
-					char *home_dir = getenv("HOME");
-					expanded = add_and_realloc(expanded, home_dir);
-					break;
-				}
-				case '+': {
-					char *working_dir = getenv("PWD");
-					expanded = add_and_realloc(expanded, working_dir);
+					expanded = add_and_realloc(expanded, getenv("HOME"));
+					char slash[] = {'/', '\0'};
+					expanded = add_and_realloc(expanded, slash);
 					break;
 				}
 				case '-': {
-					char *previous_dir = getenv("OLDPWD");
-					expanded = add_and_realloc(expanded, previous_dir);
+					expanded = add_and_realloc(expanded, getenv("PWD"));
+					break;
+				}
+				case '+': {
+					expanded = add_and_realloc(expanded, getenv("OLDPWD"));
+					break;
+				}
+				case '\0': {
+					expanded = add_and_realloc(expanded, getenv("HOME"));
+					break;
+				}
+				default: {
+					char terminated[] = {'~', str[i], '\0'};
+					expanded = add_and_realloc(expanded, terminated);
 				}
 			}
-		}else if(c == '$'){
-			++c;
+		}else if(i == '$' && quoting != SINGLE_QUOTES){
 			char *varstr = malloc(16);
-			size_t len_written = 0;
-			
-			while(c != ' ' && c != '\n' && c != '\0'){
-				varstr[len_written++] = c;
-				++c;
+
+			while(str[i] != ' ' && str[i] != '\0' && str[i] != '\n') {
+				char terminated[] = {str[i], '\0'};
+				varstr = add_and_realloc(varstr, terminated);
 			}
 
-			char *variable = getenv(varstr);
-			expanded = add_and_realloc(expanded, variable);
+			expanded = add_and_realloc(expanded, getenv(varstr));
+
+			free(varstr);
+		}else {
+			char terminated[] = {str[i], '\0'};
+			expanded = add_and_realloc(expanded, terminated);
 		}
 	}
+	
 	return expanded;
 }
 
 /// Take generated tokens and process them, returning new tokens.
 Token **preprocess_tokens(Token **tokens) {
-	Token *token = *tokens;
+	dustbunny_debug("preprocessing tokens");
 
 	size_t tokens_written = 0;
 	Token **processed = malloc(sizeof(Token*) * 128);
@@ -82,7 +94,8 @@ Token **preprocess_tokens(Token **tokens) {
 	// 0 for no quotes, 1 for single quotes, 2 for double quotes.
 	int in_quotes = NO_QUOTES;
 
-	while(tokens != NULL) {
+	while(*tokens) {
+		Token *token = *tokens;
 		switch(token->type) {
 			// THESE TOKENS ARE DISCARED IN PREPROCESSING.
 			case TokenQuote: {
@@ -90,17 +103,20 @@ Token **preprocess_tokens(Token **tokens) {
 					in_quotes = NO_QUOTES;
 				}else if(in_quotes == NO_QUOTES){
 					in_quotes = SINGLE_QUOTES;
+				}else{
+					char terminated[] = {'\'', '\0'};
+					add_and_realloc(tmp_text, terminated);
 				}
 				
 				break;
 			}
 			case TokenText: {
-				token->value = expand_string(token->value);
+				char *expanded_value = expand_string(token->value, in_quotes);
 				
 				if(in_quotes){
-					add_and_realloc(tmp_text,token->value);										
+					add_and_realloc(tmp_text,expanded_value);										
 				}else {
-					processed[tokens_written++] = token;
+					processed[tokens_written++] = token_new(TokenText, expanded_value);
 				}
 				break;
 			}
@@ -112,7 +128,7 @@ Token **preprocess_tokens(Token **tokens) {
 				 	size_t tmp_space_size = sizeof(token->value) + 2; // +2 because we are adding a character, and need a terminator
 					char *tmp_space_buf = malloc(tmp_space_size);
 
-					if(!strcpy(tmp_space_buf, token->value)){
+					if(!strcpy(tmp_space_buf, tmp_text)){
 						dustbunny_debug("error copying string");
 						return NULL;
 					}
@@ -122,7 +138,9 @@ Token **preprocess_tokens(Token **tokens) {
 						return NULL;	
 					}
 					
-					add_and_realloc(tmp_space_buf, tmp_text);					
+					add_and_realloc(tmp_space_buf, tmp_text);
+					free(tmp_space_buf);					
+					break;
 				}
 				break;
 			}
@@ -132,5 +150,10 @@ Token **preprocess_tokens(Token **tokens) {
 		}
 		++tokens;
 	}
+
+	if(strlen(tmp_text) > 0){
+		processed[tokens_written++] = token_new(TokenText, tmp_text);	
+	}
+	processed[tokens_written] = NULL;
 	return processed;
 }	

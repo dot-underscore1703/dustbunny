@@ -15,8 +15,8 @@
 #include "tokens.h"			// Token
 #include "nodes.h"			// Node
 #include "debug.h"			// is_debug, dustbunny_debug()
-
-#include "lexer.h"
+#include "lexer.h"			
+#include "preproc.h"
 //#include "parser.h"
 //#include "interpreter.h"
 
@@ -95,19 +95,35 @@ int main(int argc, char **argv) {
     	Token **tokbuf = malloc(sizeof(Token*) * 128);
 
     	tokenise_input(tokbuf, 128, user_input);
+
+		Token **processed = preprocess_tokens(tokbuf);
+    	
  		if(print_only){
+ 			printf("BEFORE PRE-PROCESSING:\n");
 			for(size_t idx = 0; tokbuf[idx] != NULL; ++idx) {
 				char typebuf[20];
 				Token *token = tokbuf[idx];
 				
 				if(token->type == TokenText) {
-					printf("%s(%s)\n",token_type_as_str(typebuf, 20, token), token->value);
+					printf("\t%s(%s)\n",token_type_as_str(typebuf, 20, token), token->value);
 				}else {
-					printf("%s()\n",token_type_as_str(typebuf, 20, token));
+					printf("\t%s()\n",token_type_as_str(typebuf, 20, token));
+				}
+			}
+			printf("AFTER PRE-PROCESSING:\n");
+			for(size_t idx = 0; processed[idx] != NULL; ++idx){
+				char typebuf[20];
+				Token *token = processed[idx];
+
+				if(token->type == TokenText) {
+					printf("\t%s(%s)\n",token_type_as_str(typebuf, 20, token), token->value);
+				}else {
+					printf("\t%s()\n",token_type_as_str(typebuf, 20, token));
 				}
 			
 				token_destroy(token);
 			}
+			
 		}
 
 		if(!input_method) {

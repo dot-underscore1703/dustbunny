@@ -55,9 +55,9 @@ static void finalise_and_write_token(
 		text_written,
 		'\0'
 	);
-	
-	token_buffer[(*tokens_written)++] = token_new(TokenText, strdup(text_buffer));
 
+	token_buffer[(*tokens_written)++] = token_new(TokenText, strdup(text_buffer));
+	
 	// clean up and reset temporaries to be reused.
 	*text_buf_size = 32;
 	*text_written = 0;
@@ -99,7 +99,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 						&tokens_written	
 					);
 				}
-				if(token_buffer[tokens_written -1]->type != TokenSpace){
+				if(token_buffer[tokens_written - 1] != NULL && token_buffer[tokens_written - 1]->type != TokenSpace){
 					token_buffer[tokens_written++] = 
 						token_new(TokenSpace, NULL);
 				}
@@ -377,6 +377,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 				}
 				// hahahaha fucking destroy EVERYTHING
 				while(input[idx] != '\0' && input[idx] != '\n') {
+					++idx;
 					continue;			
 				}
 				break;

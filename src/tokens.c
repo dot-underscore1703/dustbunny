@@ -46,8 +46,14 @@ Token *token_new(TokenType type, char *value) {
 	new_token->type = type;
 
 	if(value){
-		new_token->value = strdup(value);
+		char *tmp = strdup(value);
+		if(!value){
+			dustbunny_debug("error duplicating strink for token value");
+		}
+		new_token->value = tmp;
 		new_token->val_len = strlen(value);
+
+		tmp = NULL;
 	}else {
 		new_token-> value = NULL;
 		new_token->val_len = -1;

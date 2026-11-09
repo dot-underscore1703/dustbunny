@@ -176,7 +176,7 @@ static int rehash_keys() {
 
 /// Allocate space for the shell environment and import environment variables.
 void init_shellenv(char **envp) {
-	 shell_variables = malloc(sizeof(ShellVariable*) * environment_size);
+	shell_variables = malloc(sizeof(ShellVariable*) * environment_size);
 
 	while(*envp != NULL){
 		if(insert_key(strtok(*envp, "="), strtok(NULL, "="), 1, 1)){

@@ -216,6 +216,7 @@ int add_shellvar(char *key, char* value, uint8_t overwrite, uint8_t export) {
 	return 0;
 }
 
+/// Sets shell variables to exported state.
 int export_shellvar(char *key) {
 	dustbunny_debug("exporting shellvar");
 

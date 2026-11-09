@@ -258,6 +258,7 @@ char *get_shellvar(char *key) {
 	uint32_t idx;
 	if(find_slot('t', key, &idx, 0)){
 		dustbunny_debug("error looking up slot");
+		return NULL;
 	}
 
 	return shell_variables[idx]->value;

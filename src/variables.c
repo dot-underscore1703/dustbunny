@@ -174,7 +174,7 @@ static int rehash_keys() {
 	return 0;	
 }
 
-/// Allocate space for the shell environment.
+/// Allocate space for the shell environment and import environment variables.
 void init_shellenv(char **envp) {
 	 shell_variables = malloc(sizeof(ShellVariable*) * environment_size);
 

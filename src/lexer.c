@@ -11,7 +11,7 @@
 // TODO: Messy code, fix it.
 
 static int write_and_realloc(
-	char *buffer, 
+	char **buffer, 
 	size_t *buf_size, 
 	size_t *amount_written, 
 	char to_write
@@ -22,7 +22,7 @@ static int write_and_realloc(
 		dustbunny_debug("buffer cant support more data, reallocating");
 
 		// avoid memory leak by using temporary pointer
-		void *tmp = realloc(buffer, *buf_size *= 2);
+		char *tmp = realloc(*buffer, *buf_size *= 2);
 		if(!tmp) {
 			// ya probably fucked but lets not make assumptions.
 			dustbunny_debug("reallocation failed");
@@ -30,16 +30,16 @@ static int write_and_realloc(
 		}
 
 		// we have confirmed the temporary is safe to use so we give back to buffer and discard pointer
-		buffer = tmp;
+		*buffer = tmp;
 		tmp = NULL;
 	}
 
-	buffer[(*amount_written)++] = to_write;
+	(*buffer)[(*amount_written)++] = to_write;
 	return 0;
 }
 
 static void finalise_and_write_token(
-	char *text_buffer,
+	char **text_buffer,
 	size_t *text_buf_size,
 	size_t *text_written,
 	 
@@ -56,14 +56,15 @@ static void finalise_and_write_token(
 		'\0'
 	);
 
-	token_buffer[(*tokens_written)++] = token_new(TokenText, strdup(text_buffer));
+	token_buffer[(*tokens_written)++] = token_new(TokenText, strdup(*text_buffer));
 	
 	// clean up and reset temporaries to be reused.
 	*text_buf_size = 32;
 	*text_written = 0;
 					
-	free(text_buffer);
-	text_buffer = malloc(*text_buf_size);
+	free(*text_buffer);
+	*text_buffer = malloc(*text_buf_size);
+	*text_buffer[0] = '\0';
 }
 
 size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
@@ -92,7 +93,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			
 				if(text_written > 0) {
 					finalise_and_write_token(
-						tmp_text_buf,
+						&tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -110,7 +111,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 				
 				if(text_written > 0) {
 					finalise_and_write_token(
-						tmp_text_buf,
+						&tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -126,7 +127,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			
 				if(in_quotes == DOUBLE_QUOTES) {
 					write_and_realloc(
-						tmp_text_buf,
+						&tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						'\''
@@ -140,7 +141,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 
 				if(text_written > 0){
 					finalise_and_write_token(
-						tmp_text_buf,
+						&tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -158,7 +159,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			
 				if(in_quotes == SINGLE_QUOTES) {
 					write_and_realloc(
-						tmp_text_buf,
+						&tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						'"'
@@ -172,7 +173,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 
 				if(text_written > 0){
 					finalise_and_write_token(
-						tmp_text_buf,
+						&tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -197,7 +198,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 				}
 				
 				write_and_realloc(
-					tmp_text_buf, 
+					&tmp_text_buf, 
 					&tmp_text_size, 
 					&text_written, 
 					to_write
@@ -209,7 +210,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 
 				if(in_quotes){
 					write_and_realloc(
-						tmp_text_buf, 
+						&tmp_text_buf, 
 						&tmp_text_size, 
 						&text_written, 
 						'|'
@@ -218,7 +219,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 				}
 				if(text_written > 0) {
 					finalise_and_write_token(
-						tmp_text_buf,
+						&tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -242,7 +243,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 
 				if(in_quotes){
 					write_and_realloc(
-						tmp_text_buf, 
+						&tmp_text_buf, 
 						&tmp_text_size, 
 						&text_written, 
 						'<'
@@ -251,7 +252,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 				}		
 				if(text_written > 0) {
 					finalise_and_write_token(
-						tmp_text_buf,
+						&tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -269,7 +270,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 
 				if(in_quotes){
 					write_and_realloc(
-						tmp_text_buf, 
+						&tmp_text_buf, 
 						&tmp_text_size, 
 						&text_written, 
 						'>'
@@ -278,7 +279,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 				}
 				if(text_written > 0) {
 					finalise_and_write_token(
-						tmp_text_buf,
+						&tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -296,7 +297,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 
 				if(in_quotes){
 					write_and_realloc(
-						tmp_text_buf, 
+						&tmp_text_buf, 
 						&tmp_text_size, 
 						&text_written, 
 						'='
@@ -305,7 +306,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 				}
 				if(first_token){
 					finalise_and_write_token(
-						tmp_text_buf,
+						&tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -316,7 +317,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 					first_token = 0;
 				}else {
 					write_and_realloc(
-						tmp_text_buf, 
+						&tmp_text_buf, 
 						&tmp_text_size, 
 						&text_written, 
 						'='
@@ -328,7 +329,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			case '&': {
 				if(in_quotes){
 					write_and_realloc(
-						tmp_text_buf, 
+						&tmp_text_buf, 
 						&tmp_text_size, 
 						&text_written, 
 						'&'
@@ -337,7 +338,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 				}
 				if(text_written > 0) {
 					finalise_and_write_token(
-						tmp_text_buf,
+						&tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -359,7 +360,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			case '#': {
 				if(in_quotes){
 					write_and_realloc(
-						tmp_text_buf, 
+						&tmp_text_buf, 
 						&tmp_text_size, 
 						&text_written, 
 						'#'
@@ -368,7 +369,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 				}
 				if(text_written > 0) {
 					finalise_and_write_token(
-						tmp_text_buf,
+						&tmp_text_buf,
 						&tmp_text_size,
 						&text_written,
 						token_buffer,
@@ -386,7 +387,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			default: {
 				dustbunny_debug("defaulting");
 				write_and_realloc(
-					tmp_text_buf, 
+					&tmp_text_buf, 
 					&tmp_text_size, 
 					&text_written, 
 					input[idx]
@@ -398,7 +399,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 	if(text_written > 0) {
 		dustbunny_debug("cleaning up untokenised text");
 		finalise_and_write_token(
-			tmp_text_buf,
+			&tmp_text_buf,
 			&tmp_text_size,
 			&text_written,
 			token_buffer,

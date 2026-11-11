@@ -11,7 +11,7 @@
 
 /// Calculate available size and append text to a string. Reallocates if necessary.
 static char *add_and_realloc(char *to, char *from){
-	dustbunny_debug("adding text to temporary token string");
+	dustbunny_debug("adding text '%s' to temporary token string",from);
 
 	size_t from_size = strlen(from);
 	size_t to_size = strlen(to);
@@ -62,10 +62,11 @@ static char *expand_string(char *str, int quoting) {
 					expanded = add_and_realloc(expanded, terminated);
 				}
 			}
-		}else if(i == '$' && quoting != SINGLE_QUOTES){
+		}else if(str[i] == '$' && quoting != SINGLE_QUOTES){
 			char *varstr = malloc(16);
+			varstr[0] = '\0';
 
-			while(str[i] != ' ' && str[i] != '\0' && str[i] != '\n') {
+			while(str[i] != ' ' && str[i] != '\0' && str[i++] != '\n') {
 				char terminated[] = {str[i], '\0'};
 				varstr = add_and_realloc(varstr, terminated);
 			}
@@ -91,6 +92,9 @@ Token **preprocess_tokens(Token **tokens) {
 
 	char *tmp_text = malloc(32);
 
+	// you would not believe how long it took for me to find the bug this is fixing
+	tmp_text[0] = '\0';
+
 	// 0 for no quotes, 1 for single quotes, 2 for double quotes.
 	int in_quotes = NO_QUOTES;
 
@@ -99,22 +103,24 @@ Token **preprocess_tokens(Token **tokens) {
 		switch(token->type) {
 			// THESE TOKENS ARE DISCARED IN PREPROCESSING.
 			case TokenQuote: {
+				dustbunny_debug("found quote token");
 				if(in_quotes == SINGLE_QUOTES){
 					in_quotes = NO_QUOTES;
 				}else if(in_quotes == NO_QUOTES){
 					in_quotes = SINGLE_QUOTES;
 				}else{
 					char terminated[] = {'\'', '\0'};
-					add_and_realloc(tmp_text, terminated);
+					tmp_text = add_and_realloc(tmp_text, terminated);
 				}
 				
 				break;
 			}
 			case TokenText: {
+				dustbunny_debug("found text token");
 				char *expanded_value = expand_string(token->value, in_quotes);
 				
 				if(in_quotes){
-					add_and_realloc(tmp_text,expanded_value);										
+					tmp_text = add_and_realloc(tmp_text,expanded_value);										
 				}else {
 					processed[tokens_written++] = token_new(TokenText, expanded_value);
 				}
@@ -122,36 +128,42 @@ Token **preprocess_tokens(Token **tokens) {
 			}
 			// THESE TOKENS ARE DISCARED IN PREPROCESSING.
 			case TokenSpace: {
-				if(in_quotes){
-					// allocate temporary buffer to add a space.
-					// i just woke up so this is probably shitty
-				 	size_t tmp_space_size = sizeof(token->value) + 2; // +2 because we are adding a character, and need a terminator
-					char *tmp_space_buf = malloc(tmp_space_size);
+				dustbunny_debug("found space token");
+				if(in_quotes){		
+					char *even_more_temporary_text_buffer = malloc(strlen(tmp_text) + 2); // +2 because strlen doesnt count the terminator character, 
+					if(!even_more_temporary_text_buffer){								  // which we need, and we are also adding a character
+						dustbunny_debug("allocation error");
+						return NULL;
+					}
 
-					if(!strcpy(tmp_space_buf, tmp_text)){
+					if(!strcpy(even_more_temporary_text_buffer, tmp_text)){
 						dustbunny_debug("error copying string");
 						return NULL;
 					}
-					
-					if(!strcat(tmp_space_buf, " ")){
+						 	
+					if(!strcat(even_more_temporary_text_buffer, " ")){
 						dustbunny_debug("error catenating string");
 						return NULL;	
 					}
-					
-					add_and_realloc(tmp_space_buf, tmp_text);
-					free(tmp_space_buf);					
+
+					free(tmp_text);
+					tmp_text = even_more_temporary_text_buffer;
+					even_more_temporary_text_buffer = NULL;
 					break;
 				}
 				break;
 			}
 			default: {
+				dustbunny_debug("other token, appending");
 				processed[tokens_written++] = token;
 			}
 		}
 		++tokens;
 	}
-
-	if(strlen(tmp_text) > 0){
+	size_t tmp_text_len = strlen(tmp_text);
+	if(tmp_text_len > 0){
+		tmp_text[tmp_text_len] = '\0';
+		dustbunny_debug("cleaning up unprocessed text");
 		processed[tokens_written++] = token_new(TokenText, tmp_text);	
 	}
 	processed[tokens_written] = NULL;

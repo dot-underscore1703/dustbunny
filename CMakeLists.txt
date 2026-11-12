@@ -25,13 +25,6 @@ if(ENABLE_SANITIZERS)
     )
 endif()
 
-add_library(strpp STATIC IMPORTED GLOBAL)
-
-set_target_properties(strpp PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/libs/libstrpp.a"
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include" 
-)
-
 add_executable(dustbunny
 	src/lexer.c
 	src/debug.c

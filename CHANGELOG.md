@@ -2,14 +2,16 @@
 ## 0.4.0
 ### Updates
 - Changed long args to short args. E.g --version -> -v --help -> -h 
-- Updated help command to show specific help on builtin commands.
+- Updated builtin help command to show specific help on builtin commands.
+- Rebuilt version and help outputs.
 
 ### New
 - Added a builtin echo command.
 - Added a builtin pwd command.
-- Added -d arg to enable debugging.
-- Added -t arg to print tokens after tokenisation without using them.
-- Added -c arg to input command via arg for early login shell support.
+- Added -d and --debug arg to enable debugging.
+- Added -t and --token arg to print tokens after tokenisation without using them.
+- Added -c and --command arg to input command via arg for early login shell support.
+- Added shell variables and minimal shell variable expansion.
 
 ### Fixes
 - Fixed memory bug where argument buffer size and the amount of arguments would not grow when it reached the limit.
@@ -20,6 +22,7 @@
 - Totally updated tokeniser to actually produce tokens rather than strings of text.
 - Added token preprocessor.
 - Added token parser to parse tokens into an actual syntax tree.
+- Rebuilt executor.
 
 ## 0.3.0
 - Removed 'why' built-in shell command.

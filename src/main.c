@@ -4,6 +4,7 @@
 
 #include <stdio.h>	// printf()
 #include <stdlib.h>	// strcmp(), free()
+#include <stdbool.h>
 #include <unistd.h>
 #include <getopt.h>
 
@@ -23,34 +24,60 @@
 // DUSTBUNNY - HOBBY LINUX SHELL
 // https://github.com/dot-underscore1703/dustbunny
 
+struct ShellState {
+	char* program_name;			// Store the name the program was invoked with.
+	bool print_only;			// If true, print the list of tokens instead of parsing/executing them.
+	
+	int opt;					// Store arg parsing option.
+	bool interactive_input;		// Are we reading user input or has our command been passed via args?
+
+	char *user_input;			// Read user input into this variable.
+};
+
+const char *dustbunny_version_info =
+	"Dustbunny version " DUSTBUNNY_VERSION_MAJOR "." DUSTBUNNY_VERSION_MINOR "." DUSTBUNNY_VERSION_PATCH "\n"
+	"Copyright (c)     " DUSTBUNNY_RELEASE_YEAR " Rory Lane.\n"
+	"License           MIT\n"
+	"Compiled on       " __DATE__  " at " __TIME__ ".\n\n"
+	"You can view the Dustbunny repo at https://github.com/dot-underscore1703/dustbunny\n";
+
+const char *dustbunny_usage = 
+	"dustbunny [OPTIONS]\n\n"
+	
+	"Options:\n"
+	"     -v, --version               Print version information and then exit."
+	"     -c, --command <COMMAND>     Execute a command from args rather than interactive input.\n"
+	"     -d, --debug                 Enter debug mode and enable extreme logging (very verbose, will clutter terminal).\n"
+	"     -h, --help                  Print usage information and then exit.\n"
+	"     -t, --tokens                Instead of parsing and executing input, lex into tokens and print the tokens.\n";
+	     
 char *dustbunny_program_name = NULL;
 
 /// The entry point of program. Self explainable.
 int main(int argc, char **argv) {
-	dustbunny_program_name = argv[0];
+	struct ShellState dustbunny_state = {
+		argv[0],
+		false,
+		0,
+		true,
+		NULL
+	};
 
-	// Print the list of tokens instead of parsing/executing them.
-	int print_only = 0;
-	int opt;
+	// "Export" the program name so other functions can use it.
+	dustbunny_program_name = dustbunny_state.program_name;
 
-	// 1 for readline(), 0 for argv1
-	int input_method = 1;
-	char *user_input;
-
-	while((opt = getopt(argc,argv,"vdtc:")) != -1) {
-		switch(opt) {
+	static struct option long_options[] = {
+		{"version", no_argument,		0, 'v'},
+		{"debug",	no_argument,		0, 'd'},
+		{"tokens",	no_argument,		0, 't'},
+		{"command",	required_argument,	0, 'c'},
+		{"help",	no_argument,		0, 'h'}
+	};
+	
+	while((dustbunny_state.opt = getopt_long(argc,argv,"vdtc:h", long_options, NULL)) != -1) {
+		switch(dustbunny_state.opt) {
 			case 'v': {
-				printf(
-      				"Dustbunny version %i.%i.%i\n"
-					"Copyright (c)     %i Rory Lane.\n"
-					"License           MIT\n"
-					"Compiled on       %s at %s.\n\n"
-					"You can view the Dustbunny repo at https://github.com/dot-underscore1703/dustbunny\n",
-           			DUSTBUNNY_VERSION_MAJOR, DUSTBUNNY_VERSION_MINOR, DUSTBUNNY_VERSION_PATCH, 
-					DUSTBUNNY_RELEASE_YEAR,
-
-					__DATE__, __TIME__
-				);
+				printf(dustbunny_version_info);
 				exit(EXIT_SUCCESS);		
 				break;
 			}
@@ -60,45 +87,45 @@ int main(int argc, char **argv) {
 				break;
 			}
 			case 't': {
-				print_only = 1;
+				dustbunny_state.print_only = true;
 				dustbunny_debug("show tokens only activated with -t");
 				break;
 			}
 			case 'c': {
-				input_method = 0;
+				dustbunny_state.interactive_input = false;
 
-				if((user_input = optarg) == NULL){
+				if((dustbunny_state.user_input = optarg) == NULL){
 					exit(EXIT_FAILURE);
 				} 
 				
 				break;			
 			}
-			default: {
-				// Use GNU libreadline for line reading, like bash!
-				input_method = 1;
+			case 'h': {
+				printf(dustbunny_usage);
+				exit(EXIT_SUCCESS);
 				break;
 			}
 		}
 	}
   	
-  	while (1) {
-  		if(input_method) {
-  			user_input = readline(": ");
+  	for (;;) {
+  		if(dustbunny_state.interactive_input == true) {
+  			dustbunny_state.user_input = readline(": ");
   		}
   		
-    	dustbunny_debug("input: %s", user_input);
-    	if (user_input == NULL) {
+    	dustbunny_debug("input: %s", dustbunny_state.user_input);
+    	if (dustbunny_state.user_input == NULL) {
       		break;
     	}
 
     	// Buffer for holding tokens from input.
     	Token **tokbuf = malloc(sizeof(Token*) * 128);
 
-    	tokenise_input(tokbuf, 128, user_input);
+    	tokenise_input(tokbuf, 128, dustbunny_state.user_input);
 
 		Token **processed = preprocess_tokens(tokbuf);
     	
- 		if(print_only){
+ 		if(dustbunny_state.print_only == true){
  			printf("BEFORE PRE-PROCESSING:\n");
 			for(size_t idx = 0; tokbuf[idx] != NULL; ++idx) {
 				char typebuf[20];
@@ -126,11 +153,11 @@ int main(int argc, char **argv) {
 			
 		}
 
-		if(!input_method) {
+		if(dustbunny_state.interactive_input == false) {
 		  	exit(EXIT_SUCCESS);
 		}else{	
-    		free(user_input);
-    		user_input = NULL;
+    		free(dustbunny_state.user_input);
+    		dustbunny_state.user_input = NULL;
     	}
   	}
 

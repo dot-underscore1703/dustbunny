@@ -100,7 +100,7 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 						&tokens_written	
 					);
 				}
-				if(token_buffer[tokens_written - 1] != NULL && token_buffer[tokens_written - 1]->type != TokenSpace && in_quotes){
+				if(token_buffer[tokens_written - 1] != NULL && token_buffer[tokens_written - 1]->type != TokenSpace){
 					token_buffer[tokens_written++] = 
 						token_new(TokenSpace, NULL);
 				}

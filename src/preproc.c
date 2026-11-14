@@ -115,17 +115,6 @@ Token **preprocess_tokens(Token **tokens) {
 				
 				break;
 			}
-			case TokenText: {
-				dustbunny_debug("found text token");
-				char *expanded_value = expand_string(token->value, in_quotes);
-				
-				if(in_quotes){
-					tmp_text = add_and_realloc(tmp_text,expanded_value);										
-				}else {
-					processed[tokens_written++] = token_new(TokenText, expanded_value);
-				}
-				break;
-			}
 			// THESE TOKENS ARE DISCARED IN PREPROCESSING.
 			case TokenSpace: {
 				dustbunny_debug("found space token");
@@ -150,6 +139,17 @@ Token **preprocess_tokens(Token **tokens) {
 					tmp_text = even_more_temporary_text_buffer;
 					even_more_temporary_text_buffer = NULL;
 					break;
+				}
+				break;
+			}
+			case TokenText: {
+				dustbunny_debug("found text token");
+				char *expanded_value = expand_string(token->value, in_quotes);
+				
+				if(in_quotes){
+					tmp_text = add_and_realloc(tmp_text,expanded_value);										
+				}else {
+					processed[tokens_written++] = token_new(TokenText, expanded_value);
 				}
 				break;
 			}

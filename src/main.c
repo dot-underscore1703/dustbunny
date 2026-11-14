@@ -45,7 +45,7 @@ const char *dustbunny_usage =
 	"dustbunny [OPTIONS]\n\n"
 	
 	"Options:\n"
-	"     -v, --version               Print version information and then exit."
+	"     -v, --version               Print version information and then exit.\n"
 	"     -c, --command <COMMAND>     Execute a command from args rather than interactive input.\n"
 	"     -d, --debug                 Enter debug mode and enable extreme logging (very verbose, will clutter terminal).\n"
 	"     -h, --help                  Print usage information and then exit.\n"

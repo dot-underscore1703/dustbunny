@@ -4,17 +4,17 @@
 #include <stdlib.h>
 
 typedef enum NodeType {
-	Root,
-	Command,
-	Arg,
-	File,
-	Pipe,
-	RedirectTo,
-	RedirectFrom,
+	NodeRoot,
+	NodeCommand,
+	NodeArg,
+	NodeFile,
+	NodePipe,
+	NodeRedirectTo,
+	NodeRedirectFrom,
 	
-	SendToBackground,
-	ExecuteOnSuccess,
-	ExecuteOnFailure
+	NodeSendToBackground,
+	NodeExecuteOnSuccess,
+	NodeExecuteOnFailure
 } NodeType;
 
 typedef struct Node {

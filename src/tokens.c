@@ -70,6 +70,7 @@ int token_destroy(Token *token) {
 		return 1;
 	};
 
+	free(token->value);
 	free(token);
 	token = NULL;
 	

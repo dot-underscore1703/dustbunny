@@ -56,7 +56,7 @@ static void finalise_and_write_token(
 		'\0'
 	);
 
-	token_buffer[(*tokens_written)++] = token_new(TokenText, strdup(*text_buffer));
+	token_buffer[(*tokens_written)++] = token_new(TokenText, *text_buffer);
 	
 	// clean up and reset temporaries to be reused.
 	*text_buf_size = 32;
@@ -406,6 +406,8 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			&tokens_written	
 		);
 	}
+
+	free(tmp_text_buf);
 	
 	token_buffer[tokens_written] = NULL;
 	dustbunny_debug("Tokens written:%i",tokens_written);

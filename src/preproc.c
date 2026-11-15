@@ -26,8 +26,8 @@ static char *add_and_realloc(char *to, char *from){
 	}
 	to = tmp;
 	tmp = NULL;
-
-	return strcat(to, from);
+	
+	return strcat(to, from); 
 }
 
 static char *expand_string(char *str, int quoting) {
@@ -115,6 +115,10 @@ Token **preprocess_tokens(Token **tokens) {
 				
 				break;
 			}
+			case TokenDblQuote: {
+				
+				break;
+			}
 			// THESE TOKENS ARE DISCARED IN PREPROCESSING.
 			case TokenSpace: {
 				dustbunny_debug("found space token");
@@ -151,6 +155,8 @@ Token **preprocess_tokens(Token **tokens) {
 				}else {
 					processed[tokens_written++] = token_new(TokenText, expanded_value);
 				}
+
+				free(expanded_value);
 				break;
 			}
 			default: {
@@ -166,6 +172,8 @@ Token **preprocess_tokens(Token **tokens) {
 		dustbunny_debug("cleaning up unprocessed text");
 		processed[tokens_written++] = token_new(TokenText, tmp_text);	
 	}
+
+	free(tmp_text);
 	processed[tokens_written] = NULL;
 	return processed;
 }	

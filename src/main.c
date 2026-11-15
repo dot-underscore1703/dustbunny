@@ -136,6 +136,8 @@ int main(int argc, char **argv) {
 				}else {
 					printf("\t%s()\n",token_type_as_str(typebuf, 20, token));
 				}
+
+				token_destroy(token);
 			}
 			printf("AFTER PRE-PROCESSING:\n");
 			for(size_t idx = 0; processed[idx] != NULL; ++idx){

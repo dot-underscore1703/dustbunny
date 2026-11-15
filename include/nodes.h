@@ -4,12 +4,16 @@
 #include <stdlib.h>
 
 typedef enum NodeType {
-	Text,
+	Root,
+	Command,
+	Arg,
+	File,
 	Pipe,
 	RedirectTo,
 	RedirectFrom,
+	
 	SendToBackground,
-	ExecuteOnSucces,
+	ExecuteOnSuccess,
 	ExecuteOnFailure
 } NodeType;
 

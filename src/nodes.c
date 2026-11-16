@@ -12,17 +12,17 @@
 
 /// Types for nodes. Each node has a type, which tells the interpreter how to use it and its children.
 typedef enum NodeType {
-	Root,	
-	Command, 
-	Arg,				// echo
-	File,
-	Pipe,				// |
-	RedirectTo,			// >
-	RedirectFrom,		// <
+	NodeRoot,	
+	NodeCommand, 
+	NodeArg,				// echo
+	NodeFile,
+	NodePipe,				// |
+	NodeRedirectTo,			// >
+	NodeRedirectFrom,		// <
 
-	SendToBackground,	// &
-	ExecuteOnSuccess,	// &&
-	ExecuteOnFailure	// ||
+	NodeSendToBackground,	// &
+	NodeExecuteOnSuccess,	// &&
+	NodeExecuteOnFailure	// ||
 } NodeType;
 
 /// The node type. The AST node tree is comprised of these types. Every node should have a parent except for the Root node, and every node should have a child except for the Text node.

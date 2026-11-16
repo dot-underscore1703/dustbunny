@@ -1,14 +1,25 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "tokens.h"
 #include "debug.h"
 
-#define NO_QUOTES 0
-#define DOUBLE_QUOTES 1
-#define SINGLE_QUOTES 2
+enum Quotations {
+	NO_QUOTES,		// Since we haven't assigned a custom value to this, its the same as 0, which makes it falsy. This means we can still use (!state.in_quotes) and (state.quotes).
+	SINGLE_QUOTES,	// These have the values of 1 and
+	DOUBLE_QUOTES	// 2 though, so they are truthy.
+};
 
-// TODO: Messy code, fix it.
+struct LexerState {
+	enum Quotations in_quotes;
+	size_t tokens_written;
+	bool first_token;
+	
+	size_t tmp_text_size;
+	char *tmp_text_buf;
+	size_t text_written;
+};
 
 static int write_and_realloc(
 	char **buffer, 
@@ -67,41 +78,45 @@ static void finalise_and_write_token(
 	*text_buffer[0] = '\0';
 }
 
-size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
+int tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 	dustbunny_debug("tokenising input...");
 
-	int in_quotes = NO_QUOTES;
-
+	struct LexerState state;
+	
 	if(!token_buffer || buffer_len < 1) {
 		return 1;
 	}
 
-	size_t tokens_written = 0;
+	state.tokens_written = 0;
 
 	// We only want TokenEquals tokens if we are on the first arg
-	int first_token = 1;
+	state.first_token = true;
 
 	// Allocate space to temporarily hold the values for text tokens.
-	size_t tmp_text_size = 32;
-	char *tmp_text_buf = malloc(tmp_text_size);
-	size_t text_written = 0;
+	state.tmp_text_size = 32;
+	state.tmp_text_buf = malloc(state.tmp_text_size);
+	state.text_written = 0;
 	
 	for(size_t idx = 0; input[idx] != '\0'; ++idx) {
 		switch(input[idx]) {
 			case ' ': {
 				dustbunny_debug("found space");
 			
-				if(text_written > 0) {
+				if(state.text_written > 0) {
 					finalise_and_write_token(
-						&tmp_text_buf,
-						&tmp_text_size,
-						&text_written,
+						&state.tmp_text_buf,
+						&state.tmp_text_size,
+						&state.text_written,
 						token_buffer,
-						&tokens_written	
+						&state.tokens_written	
 					);
 				}
-				if(token_buffer[tokens_written - 1] != NULL && token_buffer[tokens_written - 1]->type != TokenSpace){
-					token_buffer[tokens_written++] = 
+				if(
+					state.tokens_written > 0 &&
+					token_buffer[state.tokens_written - 1] != NULL && 
+					token_buffer[state.tokens_written - 1]->type != TokenSpace
+				){
+					token_buffer[state.tokens_written++] = 
 						token_new(TokenSpace, NULL);
 				}
 				break;
@@ -109,47 +124,47 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			case '\n': {
 				dustbunny_debug("found newline");
 				
-				if(text_written > 0) {
+				if(state.text_written > 0) {
 					finalise_and_write_token(
-						&tmp_text_buf,
-						&tmp_text_size,
-						&text_written,
+						&state.tmp_text_buf,
+						&state.tmp_text_size,
+						&state.text_written,
 						token_buffer,
-						&tokens_written	
+						&state.tokens_written	
 					);
 				}
 
-				token_buffer[tokens_written++] = token_new(TokenNewline, NULL);
+				token_buffer[state.tokens_written++] = token_new(TokenNewline, NULL);
 				break;
 			}
 			case '\'': {
 				dustbunny_debug("found quote");
 			
-				if(in_quotes == DOUBLE_QUOTES) {
+				if(state.in_quotes == DOUBLE_QUOTES) {
 					write_and_realloc(
-						&tmp_text_buf,
-						&tmp_text_size,
-						&text_written,
+						&state.tmp_text_buf,
+						&state.tmp_text_size,
+						&state.text_written,
 						'\''
 					);
 					break;
-				}else if(in_quotes == SINGLE_QUOTES) {
-					in_quotes = NO_QUOTES;
-				}else if(in_quotes == NO_QUOTES) {
-					in_quotes = SINGLE_QUOTES;
+				}else if(state.in_quotes == SINGLE_QUOTES) {
+					state.in_quotes = NO_QUOTES;
+				}else if(state.in_quotes == NO_QUOTES) {
+					state.in_quotes = SINGLE_QUOTES;
 				}
 
-				if(text_written > 0){
+				if(state.text_written > 0){
 					finalise_and_write_token(
-						&tmp_text_buf,
-						&tmp_text_size,
-						&text_written,
+						&state.tmp_text_buf,
+						&state.tmp_text_size,
+						&state.text_written,
 						token_buffer,
-						&tokens_written
+						&state.tokens_written
 					);
 				}
 				
-				token_buffer[tokens_written++] =
+				token_buffer[state.tokens_written++] =
 					token_new(TokenQuote,NULL);
 
 				break;
@@ -157,31 +172,31 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			case '"': {
 				dustbunny_debug("found dblquote");
 			
-				if(in_quotes == SINGLE_QUOTES) {
+				if(state.in_quotes == SINGLE_QUOTES) {
 					write_and_realloc(
-						&tmp_text_buf,
-						&tmp_text_size,
-						&text_written,
+						&state.tmp_text_buf,
+						&state.tmp_text_size,
+						&state.text_written,
 						'"'
 					);
 					break;
-				}else if(in_quotes == DOUBLE_QUOTES) {
-					in_quotes = NO_QUOTES;
-				}else if(in_quotes == NO_QUOTES) {
-					in_quotes = DOUBLE_QUOTES;
+				}else if(state.in_quotes == DOUBLE_QUOTES) {
+					state.in_quotes = NO_QUOTES;
+				}else if(state.in_quotes == NO_QUOTES) {
+					state.in_quotes = DOUBLE_QUOTES;
 				}
 
-				if(text_written > 0){
+				if(state.text_written > 0){
 					finalise_and_write_token(
-						&tmp_text_buf,
-						&tmp_text_size,
-						&text_written,
+						&state.tmp_text_buf,
+						&state.tmp_text_size,
+						&state.text_written,
 						token_buffer,
-						&tokens_written
+						&state.tokens_written
 					);
 				}
 				
-				token_buffer[tokens_written++] =
+				token_buffer[state.tokens_written++] =
 					token_new(TokenDblQuote,NULL);
 
 				break;
@@ -191,16 +206,16 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			
 				// We shouldn't escape chars if in single quotes.
 				char to_write;
-				if(in_quotes == SINGLE_QUOTES){
+				if(state.in_quotes == SINGLE_QUOTES){
 					to_write = '\\';
 				}else {
 					to_write = input[++idx];
 				}
 				
 				write_and_realloc(
-					&tmp_text_buf, 
-					&tmp_text_size, 
-					&text_written, 
+					&state.tmp_text_buf, 
+					&state.tmp_text_size, 
+					&state.text_written, 
 					to_write
 				);
 				break;
@@ -208,118 +223,118 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			case '|': {
 				dustbunny_debug("found pipe");
 
-				if(in_quotes){
+				if(state.in_quotes){
 					write_and_realloc(
-						&tmp_text_buf, 
-						&tmp_text_size, 
-						&text_written, 
+						&state.tmp_text_buf, 
+						&state.tmp_text_size, 
+						&state.text_written, 
 						'|'
 					);	
 					break;
 				}
-				if(text_written > 0) {
+				if(state.text_written > 0) {
 					finalise_and_write_token(
-						&tmp_text_buf,
-						&tmp_text_size,
-						&text_written,
+						&state.tmp_text_buf,
+						&state.tmp_text_size,
+						&state.text_written,
 						token_buffer,
-						&tokens_written	
+						&state.tokens_written	
 					);
 				}
 
 				// two consecutive pipes has its own token
 				if(input[idx + 1] == '|'){
-					token_buffer[tokens_written++] = token_new(TokenDblPipe, NULL);
+					token_buffer[state.tokens_written++] = token_new(TokenDblPipe, NULL);
 					++idx;
 				}else {
-					token_buffer[tokens_written++] = token_new(TokenPipe, NULL);
+					token_buffer[state.tokens_written++] = token_new(TokenPipe, NULL);
 				}
 
-				first_token = 0;
+				state.first_token = 0;
 				break;
 			}
 			case '<': {
 				dustbunny_debug("found bracketin");
 
-				if(in_quotes){
+				if(state.in_quotes){
 					write_and_realloc(
-						&tmp_text_buf, 
-						&tmp_text_size, 
-						&text_written, 
+						&state.tmp_text_buf, 
+						&state.tmp_text_size, 
+						&state.text_written, 
 						'<'
 					);	
 					break;
 				}		
-				if(text_written > 0) {
+				if(state.text_written > 0) {
 					finalise_and_write_token(
-						&tmp_text_buf,
-						&tmp_text_size,
-						&text_written,
+						&state.tmp_text_buf,
+						&state.tmp_text_size,
+						&state.text_written,
 						token_buffer,
-						&tokens_written	
+						&state.tokens_written	
 					);
 				}
 
-				token_buffer[tokens_written++] = token_new(TokenBracketIn, NULL);				
+				token_buffer[state.tokens_written++] = token_new(TokenBracketIn, NULL);				
 
-				first_token = 0;
+				state.first_token = 0;
 				break;
 			}
 			case '>': {
 				dustbunny_debug("found bracketout");
 
-				if(in_quotes){
+				if(state.in_quotes){
 					write_and_realloc(
-						&tmp_text_buf, 
-						&tmp_text_size, 
-						&text_written, 
+						&state.tmp_text_buf, 
+						&state.tmp_text_size, 
+						&state.text_written, 
 						'>'
 					);	
 					break;
 				}
-				if(text_written > 0) {
+				if(state.text_written > 0) {
 					finalise_and_write_token(
-						&tmp_text_buf,
-						&tmp_text_size,
-						&text_written,
+						&state.tmp_text_buf,
+						&state.tmp_text_size,
+						&state.text_written,
 						token_buffer,
-						&tokens_written	
+						&state.tokens_written	
 					);
 				}
 
-				token_buffer[tokens_written++] = token_new(TokenBracketOut, NULL);				
+				token_buffer[state.tokens_written++] = token_new(TokenBracketOut, NULL);				
 
-				first_token = 0;
+				state.first_token = 0;
 				break;
 			}
 			case '=': {
 				dustbunny_debug("found equals");
 
-				if(in_quotes){
+				if(state.in_quotes){
 					write_and_realloc(
-						&tmp_text_buf, 
-						&tmp_text_size, 
-						&text_written, 
+						&state.tmp_text_buf, 
+						&state.tmp_text_size, 
+						&state.text_written, 
 						'='
 					);	
 					break;
 				}
-				if(first_token){
+				if(state.first_token){
 					finalise_and_write_token(
-						&tmp_text_buf,
-						&tmp_text_size,
-						&text_written,
+						&state.tmp_text_buf,
+						&state.tmp_text_size,
+						&state.text_written,
 						token_buffer,
-						&tokens_written	
+						&state.tokens_written	
 					);
 
-					token_buffer[tokens_written++] = token_new(TokenEquals, NULL);				
-					first_token = 0;
+					token_buffer[state.tokens_written++] = token_new(TokenEquals, NULL);				
+					state.first_token = 0;
 				}else {
 					write_and_realloc(
-						&tmp_text_buf, 
-						&tmp_text_size, 
-						&text_written, 
+						&state.tmp_text_buf, 
+						&state.tmp_text_size, 
+						&state.text_written, 
 						'='
 					);
 				}
@@ -327,53 +342,53 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			}
 
 			case '&': {
-				if(in_quotes){
+				if(state.in_quotes){
 					write_and_realloc(
-						&tmp_text_buf, 
-						&tmp_text_size, 
-						&text_written, 
+						&state.tmp_text_buf, 
+						&state.tmp_text_size, 
+						&state.text_written, 
 						'&'
 					);	
 					break;
 				}
-				if(text_written > 0) {
+				if(state.text_written > 0) {
 					finalise_and_write_token(
-						&tmp_text_buf,
-						&tmp_text_size,
-						&text_written,
+						&state.tmp_text_buf,
+						&state.tmp_text_size,
+						&state.text_written,
 						token_buffer,
-						&tokens_written	
+						&state.tokens_written	
 					);
 				}
 
 				// two consecutive ampersands has its own token
 				if(input[idx + 1] == '&'){
-					token_buffer[tokens_written++] = token_new(TokenDblAmpersand, NULL);
+					token_buffer[state.tokens_written++] = token_new(TokenDblAmpersand, NULL);
 					++idx;
 				}else {
-					token_buffer[tokens_written++] = token_new(TokenAmpersand, NULL);
+					token_buffer[state.tokens_written++] = token_new(TokenAmpersand, NULL);
 				}
 
-				first_token = 0;
+				state.first_token = 0;
 				break;
 			}
 			case '#': {
-				if(in_quotes){
+				if(state.in_quotes){
 					write_and_realloc(
-						&tmp_text_buf, 
-						&tmp_text_size, 
-						&text_written, 
+						&state.tmp_text_buf, 
+						&state.tmp_text_size, 
+						&state.text_written, 
 						'#'
 					);	
 					break;
 				}
-				if(text_written > 0) {
+				if(state.text_written > 0) {
 					finalise_and_write_token(
-						&tmp_text_buf,
-						&tmp_text_size,
-						&text_written,
+						&state.tmp_text_buf,
+						&state.tmp_text_size,
+						&state.text_written,
 						token_buffer,
-						&tokens_written	
+						&state.tokens_written	
 					);
 				}
 				// hahahaha fucking destroy EVERYTHING
@@ -387,29 +402,29 @@ size_t tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 			default: {
 				dustbunny_debug("defaulting");
 				write_and_realloc(
-					&tmp_text_buf, 
-					&tmp_text_size, 
-					&text_written, 
+					&state.tmp_text_buf, 
+					&state.tmp_text_size, 
+					&state.text_written, 
 					input[idx]
 				);
 				break;
 			}
 		}
 	}
-	if(text_written > 0) {
+	if(state.text_written > 0) {
 		dustbunny_debug("cleaning up untokenised text");
 		finalise_and_write_token(
-			&tmp_text_buf,
-			&tmp_text_size,
-			&text_written,
+			&state.tmp_text_buf,
+			&state.tmp_text_size,
+			&state.text_written,
 			token_buffer,
-			&tokens_written	
+			&state.tokens_written	
 		);
 	}
 
-	free(tmp_text_buf);
+	free(state.tmp_text_buf);
 	
-	token_buffer[tokens_written] = NULL;
-	dustbunny_debug("Tokens written:%i",tokens_written);
-	return tokens_written;
+	token_buffer[state.tokens_written] = NULL;
+	dustbunny_debug("Tokens written:%i",state.tokens_written);
+	return 0;
 } 

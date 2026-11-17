@@ -4,10 +4,27 @@
 #include "tokens.h" // Token
 #include "debug.h"	// dustbunny_debug()
 
+// What the FUCK was I thinking writing this???
+// Literally just prepending "state." to every variable in preprocess_tokens.
+// If anyones looking at this comment and feeling bored, try making a
+// pull request that updates the helper funcs to take a PreprocessorState
+// variable so preprocess_tokens isn't so cluttered.
+
 // Quotation state
-#define NO_QUOTES 0		
-#define SINGLE_QUOTES 1 	// ''
-#define DOUBLE_QUOTES 2 	// ""
+enum Quotations {
+	NO_QUOTES,
+	SINGLE_QUOTES,	// ''
+	DOUBLE_QUOTES,	// ""
+};
+
+struct PreprocessorState {
+	enum Quotations in_quotes;
+	
+	size_t tokens_written;
+	Token **processed;
+
+	char *tmp_text;
+};
 
 /// Calculate available size and append text to a string. Reallocates if necessary.
 static char *add_and_realloc(char *to, char *from){
@@ -87,16 +104,18 @@ static char *expand_string(char *str, int quoting) {
 Token **preprocess_tokens(Token **tokens) {
 	dustbunny_debug("preprocessing tokens");
 
-	size_t tokens_written = 0;
-	Token **processed = malloc(sizeof(Token*) * 128);
+	struct PreprocessorState state;
 
-	char *tmp_text = malloc(32);
+	state.tokens_written = 0;
+	state.processed = malloc(sizeof(Token*) * 128);
+
+	state.tmp_text = malloc(32);
 
 	// you would not believe how long it took for me to find the bug this is fixing
-	tmp_text[0] = '\0';
+	state.tmp_text[0] = '\0';
 
 	// 0 for no quotes, 1 for single quotes, 2 for double quotes.
-	int in_quotes = NO_QUOTES;
+	state.in_quotes = NO_QUOTES;
 
 	while(*tokens) {
 		Token *token = *tokens;
@@ -104,32 +123,40 @@ Token **preprocess_tokens(Token **tokens) {
 			// THESE TOKENS ARE DISCARED IN PREPROCESSING.
 			case TokenQuote: {
 				dustbunny_debug("found quote token");
-				if(in_quotes == SINGLE_QUOTES){
-					in_quotes = NO_QUOTES;
-				}else if(in_quotes == NO_QUOTES){
-					in_quotes = SINGLE_QUOTES;
+				if(state.in_quotes == SINGLE_QUOTES){
+					state.in_quotes = NO_QUOTES;
+				}else if(state.in_quotes == NO_QUOTES){
+					state.in_quotes = SINGLE_QUOTES;
 				}else{
 					char terminated[] = {'\'', '\0'};
-					tmp_text = add_and_realloc(tmp_text, terminated);
+					state.tmp_text = add_and_realloc(state.tmp_text, terminated);
 				}
 				
 				break;
 			}
 			case TokenDblQuote: {
-				
+				dustbunny_debug("found dblquote token");
+				if(state.in_quotes == DOUBLE_QUOTES) {
+					state.in_quotes = NO_QUOTES;
+				}else if(state.in_quotes == NO_QUOTES){
+					state.in_quotes = DOUBLE_QUOTES;
+				}else {
+					char terminated[] = {'"', '\0'};
+					state.tmp_text = add_and_realloc(state.tmp_text, terminated);
+				}
 				break;
 			}
 			// THESE TOKENS ARE DISCARED IN PREPROCESSING.
 			case TokenSpace: {
 				dustbunny_debug("found space token");
-				if(in_quotes){		
-					char *even_more_temporary_text_buffer = malloc(strlen(tmp_text) + 2); // +2 because strlen doesnt count the terminator character, 
+				if(state.in_quotes){		
+					char *even_more_temporary_text_buffer = malloc(strlen(state.tmp_text) + 2); // +2 because strlen doesnt count the terminator character, 
 					if(!even_more_temporary_text_buffer){								  // which we need, and we are also adding a character
 						dustbunny_debug("allocation error");
 						return NULL;
 					}
 
-					if(!strcpy(even_more_temporary_text_buffer, tmp_text)){
+					if(!strcpy(even_more_temporary_text_buffer, state.tmp_text)){
 						dustbunny_debug("error copying string");
 						return NULL;
 					}
@@ -139,41 +166,47 @@ Token **preprocess_tokens(Token **tokens) {
 						return NULL;	
 					}
 
-					free(tmp_text);
-					tmp_text = even_more_temporary_text_buffer;
+					free(state.tmp_text);
+					state.tmp_text = even_more_temporary_text_buffer;
 					even_more_temporary_text_buffer = NULL;
 					break;
+				}else if(state.tmp_text && state.tmp_text[0] != '\0') {
+					state.processed[state.tokens_written++] = token_new(TokenText, state.tmp_text);
+					state.tmp_text[0] = '\0';
 				}
 				break;
 			}
 			case TokenText: {
 				dustbunny_debug("found text token");
-				char *expanded_value = expand_string(token->value, in_quotes);
 				
-				if(in_quotes){
-					tmp_text = add_and_realloc(tmp_text,expanded_value);										
+				if(state.in_quotes == SINGLE_QUOTES) {
+					state.tmp_text = add_and_realloc(state.tmp_text,token->value);
 				}else {
-					processed[tokens_written++] = token_new(TokenText, expanded_value);
+					char *expanded_value = expand_string(token->value, state.in_quotes);
+					state.tmp_text = add_and_realloc(state.tmp_text, expanded_value);
+					free(expanded_value);
 				}
-
-				free(expanded_value);
 				break;
 			}
 			default: {
 				dustbunny_debug("other token, appending");
-				processed[tokens_written++] = token;
+				if(strlen(state.tmp_text) > 0){
+					state.processed[state.tokens_written++] = token_new(TokenText, state.tmp_text);
+					state.tmp_text[0] = '\0';
+				}
+				state.processed[state.tokens_written++] = token_new(token->type, token->value);
 			}
 		}
 		++tokens;
 	}
-	size_t tmp_text_len = strlen(tmp_text);
+	size_t tmp_text_len = strlen(state.tmp_text);
 	if(tmp_text_len > 0){
-		tmp_text[tmp_text_len] = '\0';
+		state.tmp_text[tmp_text_len] = '\0';
 		dustbunny_debug("cleaning up unprocessed text");
-		processed[tokens_written++] = token_new(TokenText, tmp_text);	
+		state.processed[state.tokens_written++] = token_new(TokenText, state.tmp_text);	
 	}
 
-	free(tmp_text);
-	processed[tokens_written] = NULL;
-	return processed;
+	free(state.tmp_text);
+	state.processed[state.tokens_written] = NULL;
+	return state.processed;
 }	

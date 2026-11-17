@@ -155,6 +155,7 @@ int main(int argc, char **argv) {
 			
 		}
 
+		free(tokbuf);
 		if(dustbunny_state.interactive_input == false) {
 		  	exit(EXIT_SUCCESS);
 		}else{	

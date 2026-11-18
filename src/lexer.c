@@ -98,6 +98,17 @@ int tokenise_input(Token **token_buffer, size_t buffer_len, char *input) {
 	state.text_written = 0;
 	
 	for(size_t idx = 0; input[idx] != '\0'; ++idx) {
+		if(state.tokens_written + 1 > buffer_len) {
+			Token **tmp = realloc(token_buffer, state.tokens_written *= 2);
+			if(!tmp) {
+				dustbunny_debug("Reallocation error");
+				free(token_buffer);
+				return 1;
+			}
+
+			token_buffer = tmp;
+			tmp = NULL;
+		}
 		switch(input[idx]) {
 			case ' ': {
 				dustbunny_debug("found space");

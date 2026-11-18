@@ -21,6 +21,7 @@ struct PreprocessorState {
 	enum Quotations in_quotes;
 	
 	size_t tokens_written;
+	size_t max_tokens;
 	Token **processed;
 
 	char *tmp_text;
@@ -43,7 +44,7 @@ static char *add_and_realloc(char *to, char *from){
 	}
 	to = tmp;
 	tmp = NULL;
-	
+
 	return strcat(to, from); 
 }
 
@@ -107,7 +108,9 @@ Token **preprocess_tokens(Token **tokens) {
 	struct PreprocessorState state;
 
 	state.tokens_written = 0;
-	state.processed = malloc(sizeof(Token*) * 128);
+
+	state.max_tokens = sizeof(Token*) * 128;
+	state.processed = malloc(state.max_tokens);
 
 	state.tmp_text = malloc(32);
 
@@ -118,6 +121,18 @@ Token **preprocess_tokens(Token **tokens) {
 	state.in_quotes = NO_QUOTES;
 
 	while(*tokens) {
+		if(state.tokens_written + 1 > state.max_tokens) {
+			Token **tmp = realloc(state.processed, state.max_tokens *= 2);
+			if(!tmp) {
+				dustbunny_debug("Reallocation error");
+				free(state.processed);
+
+				return NULL;
+			}
+
+			state.processed = tmp;
+			tmp = NULL;
+		}
 		Token *token = *tokens;
 		switch(token->type) {
 			// THESE TOKENS ARE DISCARED IN PREPROCESSING.

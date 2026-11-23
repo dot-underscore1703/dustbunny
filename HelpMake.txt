@@ -1,4 +1,6 @@
 Compiler: cc
+Version: std=gnu17
+
 Output: build/dustbunny
 
 InputFiles {
@@ -8,7 +10,6 @@ Includes {
 	include
 }
 Flags {
-	-std=gnu17
 	-fsanitize=address,undefined
 	-fno-omit-frame-pointer
 	-g

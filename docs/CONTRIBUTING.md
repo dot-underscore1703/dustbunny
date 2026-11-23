@@ -6,6 +6,8 @@ What is really valued are bug fixes, and other code-improvements.
 
 ## Setting up.
 Note: Dustbunny depends on GNU libreadline*. Since I do not know your OS/package manager, you will need to figure out how you install libreadline.
+Note: Dustbunny uses the HelpMake build system. If you have not heard of HelpMake before, you can view it at https://github.com/Gag91/HelpMake/
+	Although, Dustbunny is also configured to use CMake, though the CMakeLists.txt file may not be kept up to date every update. If you need CMakeLists.txt updated, open a PR.
 
 Clone dustbunny:
 ```sh
@@ -13,8 +15,7 @@ git clone https://github.com/dot-underscore1703/dustbunny
 cd dustbunny
 
 # OPTIONAL: make build directories and build dustbunny
-cmake -B build
-cmake --build build
+hm -b
 ```
 
 ## Contribution Guidelines

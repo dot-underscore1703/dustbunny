@@ -1,0 +1,18 @@
+Compiler: cc
+Output: build/dustbunny
+
+InputFiles {
+	src/*.c
+}
+Includes {
+	include
+}
+Flags {
+	-std=gnu17
+	-fsanitize=address,undefined
+	-fno-omit-frame-pointer
+	-g
+	-lreadline	
+	-MMD
+	-MP
+}
